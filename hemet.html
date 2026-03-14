@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clutter Byte — Hemet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="css/theme.css"/>
+</head>
+<body>
+
+  <header class="cb-header">
+    <a href="home.html" class="logo">
+      <span class="logo-icon"></span>
+      <span class="logo-text">Clutter Byte</span>
+    </a>
+    <div class="header-right">
+      <div class="header-pills">
+        <span class="header-pill">Cash Only</span>
+        <span class="header-pill">No Holds</span>
+        <span class="header-pill">First Come</span>
+      </div>
+      <button class="header-contact-btn" id="header-contact-btn">Contact ↗</button>
+    </div>
+  </header>
+
+  <div class="phone-overlay" id="phone-overlay" role="dialog" aria-label="Contact">
+    <div class="phone-overlay-left">
+      <span class="phone-overlay-label">Call or text anytime</span>
+      <a href="tel:+13233019200" class="phone-overlay-number">(323) 301-9200</a>
+      <span class="phone-overlay-sub">Cash only · No holds · First come, first serve</span>
+    </div>
+    <button class="phone-overlay-close" id="phone-overlay-close">Close ✕</button>
+  </div>
+  <div class="phone-backdrop" id="phone-backdrop"></div>
+
+  <main>
+
+    <div class="page-header">
+      <a href="home.html" class="btn back">← Back</a>
+      <h2 class="page-title">Hemet</h2>
+      <p class="page-meta" id="photo-count"></p>
+    </div>
+
+    <section class="carousel-section" id="carousel-section"></section>
+
+  </main>
+
+  <footer class="cb-footer">
+    <span>© Clutter Byte</span>
+    <a href="home.html" class="footer-link">← Home</a>
+  </footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+    <button class="lb-close" id="lb-close">Close ✕</button>
+    <div class="lb-nav">
+      <button class="lb-arrow" id="lb-prev" aria-label="Previous">&#8592;</button>
+      <button class="lb-arrow" id="lb-next" aria-label="Next">&#8594;</button>
+    </div>
+    <img class="lightbox-img" id="lb-img" src="" alt=""/>
+    <span class="lb-hint">esc · ← → to navigate</span>
+  </div>
+
+  <script>var LOCATION = 'hemet';</script>
+  <script src="js/photos.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>
