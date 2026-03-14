@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clutter Byte — Estate Sale</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="../css/theme.css"/>
+</head>
+<body>
+
+  <header class="cb-header">
+    <a href="/home" class="logo">
+      <span class="logo-icon"></span>
+      <span class="logo-text">Clutter Byte</span>
+    </a>
+    <div class="header-right">
+      <div class="header-pills">
+        <span class="header-pill">Cash Only</span>
+        <span class="header-pill">No Holds</span>
+        <span class="header-pill">First Come</span>
+      </div>
+      <button class="header-contact-btn" id="header-contact-btn">Contact ↗</button>
+    </div>
+  </header>
+
+  <div class="phone-overlay" id="phone-overlay" role="dialog" aria-label="Contact">
+    <div class="phone-overlay-left">
+      <span class="phone-overlay-label">Call or text anytime</span>
+      <a href="tel:+13233019200" class="phone-overlay-number">(323) 301-9200</a>
+      <span class="phone-overlay-sub">Cash only · No holds · First come, first serve</span>
+    </div>
+    <button class="phone-overlay-close" id="phone-overlay-close">Close ✕</button>
+  </div>
+  <div class="phone-backdrop" id="phone-backdrop"></div>
+
+  <main>
+
+    <section class="hero">
+      <p class="hero-eye">Inland Empire</p>
+      <h1 class="hero-title">Big<br/><em>Estate</em><br/>Sale</h1>
+      <p class="hero-sub">
+        No holds. No online payments.<br/>
+        First come, first serve. Cash only.<br/>
+        Trades considered, not prioritized.
+      </p>
+    </section>
+
+    <div class="ticker-wrap" aria-hidden="true">
+      <div class="ticker-track">
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Vintage Items</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Antiques</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Toys</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Signed Art</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Tools</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Electronics</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Furniture</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Jewelry</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Collectibles</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Clothing</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Media</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Vehicles</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Vintage Items</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Antiques</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Toys</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Signed Art</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Tools</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Electronics</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Furniture</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Jewelry</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Collectibles</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Clothing</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Media</span></div>
+        <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-text">Vehicles</span></div>
+      </div>
+    </div>
+
+    <section class="locations-section">
+      <p class="section-label">Browse by location</p>
+      <div class="locations-grid">
+        <a href="/temecula" class="location-card">
+          <span class="loc-arrow" aria-hidden="true">↗</span>
+          <span class="loc-name">Temecula</span>
+          <span class="loc-sub">View all photos</span>
+        </a>
+        <a href="/hemet" class="location-card">
+          <span class="loc-arrow" aria-hidden="true">↗</span>
+          <span class="loc-name">Hemet</span>
+          <span class="loc-sub">View all photos</span>
+        </a>
+      </div>
+    </section>
+
+    <div class="mid-section">
+      <div class="delivery-note">
+        <p>Found something in Temecula but you're in Hemet? We might be able to work something out — just reach out.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="cb-footer">
+    <span>© Clutter Byte</span>
+  </footer>
+
+  <script src="../js/main.js"></script>
+
+</body>
+</html>

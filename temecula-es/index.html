@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clutter Byte — Temecula</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="../css/theme.css"/>
+</head>
+<body>
+
+  <header class="cb-header">
+    <a href="/home-es" class="logo">
+      <span class="logo-icon"></span>
+      <span class="logo-text">Clutter Byte</span>
+    </a>
+    <div class="header-right">
+      <div class="header-pills">
+        <span class="header-pill">Solo Efectivo</span>
+        <span class="header-pill">Sin Reservas</span>
+        <span class="header-pill">Primero en Llegar</span>
+      </div>
+      <button class="header-contact-btn" id="header-contact-btn">Contacto ↗</button>
+    </div>
+  </header>
+
+  <div class="phone-overlay" id="phone-overlay" role="dialog" aria-label="Contacto">
+    <div class="phone-overlay-left">
+      <span class="phone-overlay-label">Llama o escribe cuando quieras</span>
+      <a href="tel:+13233019200" class="phone-overlay-number">(323) 301-9200</a>
+      <span class="phone-overlay-sub">Solo efectivo · Sin reservas · Primero en llegar</span>
+    </div>
+    <button class="phone-overlay-close" id="phone-overlay-close">Cerrar ✕</button>
+  </div>
+  <div class="phone-backdrop" id="phone-backdrop"></div>
+
+  <main>
+
+    <div class="page-header">
+      <a href="/home-es" class="btn back">← Volver</a>
+      <h2 class="page-title">Temecula</h2>
+      <p class="page-meta" id="photo-count"></p>
+    </div>
+
+    <section class="carousel-section" id="carousel-section"></section>
+
+  </main>
+
+  <footer class="cb-footer">
+    <span>© Clutter Byte</span>
+    <a href="/home-es" class="footer-link">← Inicio</a>
+  </footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+    <button class="lb-close" id="lb-close">Cerrar ✕</button>
+    <div class="lb-nav">
+      <button class="lb-arrow" id="lb-prev" aria-label="Anterior">&#8592;</button>
+      <button class="lb-arrow" id="lb-next" aria-label="Siguiente">&#8594;</button>
+    </div>
+    <img class="lightbox-img" id="lb-img" src="" alt=""/>
+    <span class="lb-hint">esc · ← → para navegar</span>
+  </div>
+
+  <script>var LOCATION = 'temecula';</script>
+  <script src="../js/photos.js"></script>
+  <script src="../js/main.js"></script>
+
+</body>
+</html>

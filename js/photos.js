@@ -1,0 +1,66 @@
+// ─────────────────────────────────────────────────────────────────────────
+//  CLUTTER BYTE — PHOTOS
+//  ─────────────────────
+//  HOW TO ADD PHOTOS:
+//
+//  1. Drop your photo into temecula-pics/ or hemet-pics/
+//     Works with: .jpg .jpeg .heic .png .webp .gif — any format
+//
+//  2. Remove the // from the matching line below to activate it
+//
+//  3. Upload to GitHub → live instantly
+//
+//  Leave an array empty [] → "Coming Soon" shows automatically.
+//
+//  NOTE: Paths start with / so they work from any page on the site.
+// ─────────────────────────────────────────────────────────────────────────
+
+var PHOTOS = {
+
+  temecula: [
+    // '/temecula-pics/photo1.jpg',
+    // '/temecula-pics/photo2.jpg',
+    // '/temecula-pics/photo3.jpg',
+    // '/temecula-pics/photo4.jpg',
+    // '/temecula-pics/photo5.jpg',
+    // '/temecula-pics/photo6.jpg',
+    // '/temecula-pics/photo7.jpg',
+    // '/temecula-pics/photo8.jpg',
+    // '/temecula-pics/photo9.jpg',
+    // '/temecula-pics/photo10.jpg',
+    // '/temecula-pics/photo11.jpg',
+    // '/temecula-pics/photo12.jpg',
+    // '/temecula-pics/photo13.jpg',
+    // '/temecula-pics/photo14.jpg',
+    // '/temecula-pics/photo15.jpg',
+    // '/temecula-pics/photo16.jpg',
+    // '/temecula-pics/photo17.jpg',
+    // '/temecula-pics/photo18.jpg',
+    // '/temecula-pics/photo19.jpg',
+    // '/temecula-pics/photo20.jpg',
+  ],
+
+  hemet: [
+    '/hemet-pics/photo1.jpg',
+    '/hemet-pics/photo2.jpg',
+    '/hemet-pics/photo3.jpg',
+    '/hemet-pics/photo4.jpg',
+    '/hemet-pics/photo5.jpg',
+    '/hemet-pics/photo6.jpg',
+    '/hemet-pics/photo7.jpg',
+    '/hemet-pics/photo8.jpg',
+    '/hemet-pics/photo9.jpg',
+    '/hemet-pics/photo10.jpg',
+    // '/hemet-pics/photo11.jpg',
+    // '/hemet-pics/photo12.jpg',
+    // '/hemet-pics/photo13.jpg',
+    // '/hemet-pics/photo14.jpg',
+    // '/hemet-pics/photo15.jpg',
+    // '/hemet-pics/photo16.jpg',
+    // '/hemet-pics/photo17.jpg',
+    // '/hemet-pics/photo18.jpg',
+    // '/hemet-pics/photo19.jpg',
+    // '/hemet-pics/photo20.jpg',
+  ]
+
+};

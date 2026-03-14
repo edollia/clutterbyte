@@ -1,0 +1,3 @@
+Drop Temecula photos here.
+Name them: photo1.jpg, photo2.jpg ... photo20.jpg
+Then uncomment the matching lines in js/photos.js
