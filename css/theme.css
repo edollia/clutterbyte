@@ -562,6 +562,9 @@ body::after {
   max-width: 94vw; max-height: 92vh;
   object-fit: contain; display: block;
   animation: lbIn 0.3s var(--ease);
+  /* Allow native pinch-zoom on mobile */
+  touch-action: pinch-zoom;
+  cursor: zoom-in;
 }
 @keyframes lbIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
