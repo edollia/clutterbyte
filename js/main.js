@@ -8,29 +8,17 @@
   var closeBtn = document.getElementById('phone-overlay-close');
   if (!btn || !overlay || !backdrop) return;
 
-  function open() {
-    overlay.classList.add('open');
-    backdrop.classList.add('open');
-    btn.classList.add('active');
-  }
-  function close() {
-    overlay.classList.remove('open');
-    backdrop.classList.remove('open');
-    btn.classList.remove('active');
-  }
-  function toggle() {
-    overlay.classList.contains('open') ? close() : open();
-  }
+  function open()   { overlay.classList.add('open'); backdrop.classList.add('open'); btn.classList.add('active'); }
+  function close()  { overlay.classList.remove('open'); backdrop.classList.remove('open'); btn.classList.remove('active'); }
+  function toggle() { overlay.classList.contains('open') ? close() : open(); }
 
   btn.addEventListener('click', function (e) { e.stopPropagation(); toggle(); });
   if (closeBtn) closeBtn.addEventListener('click', close);
   backdrop.addEventListener('click', close);
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') close();
-  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
 })();
 
-// ── CAROUSEL INIT ─────────────────────────────────────────────────────────
+// ── PAGE INIT ─────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function () {
   if (typeof LOCATION === 'undefined') return;
   var photos = (typeof PHOTOS !== 'undefined' && PHOTOS[LOCATION])
@@ -54,7 +42,7 @@ function initPage(photos) {
 
   if (countEl) countEl.style.display = 'none';
 
-  // Show a minimal loading state — no alt text visible
+  // Show subtle loading dots — no alt text visible while images load
   if (section) section.innerHTML =
     '<div class="carousel-loading" id="carousel-loading">' +
       '<div class="carousel-loading-dot"></div>' +
@@ -62,30 +50,24 @@ function initPage(photos) {
       '<div class="carousel-loading-dot"></div>' +
     '</div>';
 
-  // Preload every image before building the carousel
+  // Preload all images before building carousel
   var loaded = 0;
-  var total  = photos.length;
-
-  function onLoad() {
-    loaded++;
-    if (loaded === total) {
-      // All images ready — swap loading state for carousel
-      var loadEl = document.getElementById('carousel-loading');
-      if (loadEl) loadEl.remove();
-      buildCarousel(section, photos);
-      initLightbox(photos);
-    }
-  }
-
   photos.forEach(function (src) {
     var img = new Image();
-    img.onload  = onLoad;
-    img.onerror = onLoad; // don't hang if one image 404s
-    img.src     = src;
+    img.onload  = img.onerror = function () {
+      loaded++;
+      if (loaded === photos.length) {
+        var el = document.getElementById('carousel-loading');
+        if (el) el.remove();
+        buildCarousel(section, photos);
+        initLightbox(photos);
+      }
+    };
+    img.src = src;
   });
 }
 
-// ── CAROUSEL — 3D coverflow, infinite, fluid, spam-safe ───────────────────
+// ── CAROUSEL ──────────────────────────────────────────────────────────────
 var _photos    = [];
 var _total     = 0;
 var _idx       = 0;
@@ -93,13 +75,17 @@ var _vIdx      = 0;
 var _slides    = [];
 var _track     = null;
 var _snapTimer = null;
-var CLONE_COUNT = 8;
+
+// Must be >= realistic max taps before snap fires (560ms @ ~10 taps/sec = 6).
+// 10 gives a generous buffer.
+var CLONE_COUNT = 10;
 
 function buildCarousel(container, photos) {
   _photos = photos;
   _total  = photos.length;
   _idx    = 0;
 
+  // Layout: [last-N…last-1]  [0…total-1]  [0…N-1]
   var allReal = [];
   for (var c = 0; c < CLONE_COUNT; c++)
     allReal.push((_total - CLONE_COUNT + c + _total) % _total);
@@ -108,24 +94,20 @@ function buildCarousel(container, photos) {
   for (var a = 0; a < CLONE_COUNT; a++)
     allReal.push(a % _total);
 
-  var slidesHTML = allReal.map(function (realI, vi) {
-    return '<div class="cs" data-vi="' + vi + '" data-real="' + realI + '">' +
-      '<img src="' + photos[realI] + '"' +
-        ' alt="Photo ' + (realI + 1) + '"' +
-        ' loading="' + (vi < CLONE_COUNT + 4 ? 'eager' : 'lazy') + '"' +
-        ' draggable="false">' +
-      '</div>';
+  var html = allReal.map(function (ri, vi) {
+    return '<div class="cs" data-vi="' + vi + '" data-real="' + ri + '">' +
+      '<img src="' + photos[ri] + '" alt="Photo ' + (ri + 1) + '"' +
+      ' loading="' + (vi < CLONE_COUNT + 4 ? 'eager' : 'lazy') + '"' +
+      ' draggable="false"></div>';
   }).join('');
 
   container.innerHTML =
     '<div class="c-outer">' +
-      '<div class="c-track" id="c-track">' + slidesHTML + '</div>' +
-      '<div class="c-ui">' +
-        '<div class="c-arrows">' +
-          '<button class="c-arrow" id="c-prev" aria-label="Previous">&#8592;</button>' +
-          '<button class="c-arrow" id="c-next" aria-label="Next">&#8594;</button>' +
-        '</div>' +
-      '</div>' +
+      '<div class="c-track" id="c-track">' + html + '</div>' +
+      '<div class="c-ui"><div class="c-arrows">' +
+        '<button class="c-arrow" id="c-prev" aria-label="Previous">&#8592;</button>' +
+        '<button class="c-arrow" id="c-next" aria-label="Next">&#8594;</button>' +
+      '</div></div>' +
     '</div>';
 
   _track  = document.getElementById('c-track');
@@ -134,7 +116,16 @@ function buildCarousel(container, photos) {
   wireCarousel();
 }
 
+// ── TRANSFORMS ────────────────────────────────────────────────────────────
+// Key fix: when instant=true, disable ALL slide transitions at once with a
+// single reflow, apply all positions, then re-enable in one rAF batch.
+// This eliminates the per-slide staggered flash that caused the glitch.
 function applyTransforms(instant) {
+  if (instant) {
+    _slides.forEach(function (s) { s.style.transition = 'none'; });
+    void _track.offsetWidth; // ONE reflow for all slides together
+  }
+
   _slides.forEach(function (slide, vi) {
     var offset = vi - _vIdx;
     var absOff = Math.abs(offset);
@@ -153,47 +144,43 @@ function applyTransforms(instant) {
       tx=d3*110; tz=-280; ry=d3*-46; opacity=0;    scale=0.52; pe='none';
     }
 
-    var tf = 'translateX(' + tx + '%) translateZ(' + tz + 'px) rotateY(' + ry + 'deg) scale(' + scale + ')';
-
-    if (instant) {
-      slide.style.transition    = 'none';
-      void slide.offsetWidth;
-      slide.style.transform     = tf;
-      slide.style.opacity       = opacity;
-      slide.style.zIndex        = 10 - absOff;
-      slide.style.pointerEvents = pe;
-      slide.classList.toggle('on', vi === _vIdx);
-      requestAnimationFrame(function () { requestAnimationFrame(function () {
-        slide.style.transition = '';
-      }); });
-    } else {
-      slide.style.transform     = tf;
-      slide.style.opacity       = opacity;
-      slide.style.zIndex        = 10 - absOff;
-      slide.style.pointerEvents = pe;
-      slide.classList.toggle('on', vi === _vIdx);
-    }
+    slide.style.transform     = 'translateX('+tx+'%) translateZ('+tz+'px) rotateY('+ry+'deg) scale('+scale+')';
+    slide.style.opacity       = opacity;
+    slide.style.zIndex        = 10 - absOff;
+    slide.style.pointerEvents = pe;
+    slide.classList.toggle('on', vi === _vIdx);
   });
+
+  if (instant) {
+    // Re-enable transitions for all slides together on the next paint
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        _slides.forEach(function (s) { s.style.transition = ''; });
+      });
+    });
+  }
 }
 
-var _lastReal = 0;
-
+// ── NAVIGATION ────────────────────────────────────────────────────────────
 function goTo(vIdx, instant) {
-  vIdx      = Math.max(0, Math.min(vIdx, _slides.length - 1));
-  _vIdx     = vIdx;
-  _lastReal = CLONE_COUNT + _total - 1;
-  _idx      = parseInt(_slides[_vIdx].dataset.real);
+  vIdx  = Math.max(0, Math.min(vIdx, _slides.length - 1));
+  _vIdx = vIdx;
+  _idx  = parseInt(_slides[_vIdx].dataset.real);
   applyTransforms(instant);
 
   if (!instant) {
     clearTimeout(_snapTimer);
     _snapTimer = setTimeout(function () {
+      var lastReal = CLONE_COUNT + _total - 1;
+      var newV;
       if (_vIdx < CLONE_COUNT) {
-        _vIdx = CLONE_COUNT + _total - (CLONE_COUNT - _vIdx);
+        newV  = CLONE_COUNT + _total - (CLONE_COUNT - _vIdx);
+        _vIdx = newV;
         _idx  = parseInt(_slides[_vIdx].dataset.real);
         applyTransforms(true);
-      } else if (_vIdx > _lastReal) {
-        _vIdx = CLONE_COUNT + (_vIdx - _lastReal - 1);
+      } else if (_vIdx > lastReal) {
+        newV  = CLONE_COUNT + (_vIdx - lastReal - 1);
+        _vIdx = newV;
         _idx  = parseInt(_slides[_vIdx].dataset.real);
         applyTransforms(true);
       }
@@ -201,16 +188,18 @@ function goTo(vIdx, instant) {
   }
 }
 
+// step() teleports out of clone zone first if needed, then steps.
+// This means no matter how fast you tap, _vIdx never walks off the array.
 function step(dir) {
-  _lastReal = CLONE_COUNT + _total - 1;
+  var lastReal = CLONE_COUNT + _total - 1;
   if (_vIdx < CLONE_COUNT) {
     clearTimeout(_snapTimer);
     _vIdx = CLONE_COUNT + _total - (CLONE_COUNT - _vIdx);
     _idx  = parseInt(_slides[_vIdx].dataset.real);
     applyTransforms(true);
-  } else if (_vIdx > _lastReal) {
+  } else if (_vIdx > lastReal) {
     clearTimeout(_snapTimer);
-    _vIdx = CLONE_COUNT + (_vIdx - _lastReal - 1);
+    _vIdx = CLONE_COUNT + (_vIdx - lastReal - 1);
     _idx  = parseInt(_slides[_vIdx].dataset.real);
     applyTransforms(true);
   }
@@ -221,6 +210,7 @@ function vIdxForReal(realIdx) {
   return CLONE_COUNT + (((realIdx % _total) + _total) % _total);
 }
 
+// ── WIRE ──────────────────────────────────────────────────────────────────
 function wireCarousel() {
   var prev = document.getElementById('c-prev');
   var next = document.getElementById('c-next');
@@ -237,7 +227,7 @@ function wireCarousel() {
   if (_track) {
     var startX = 0, startY = 0, moved = false, tracking = false;
 
-    function onStart(x, y) { startX = x; startY = y; moved = false; tracking = true; }
+    function onStart(x, y) { startX=x; startY=y; moved=false; tracking=true; }
     function onMove(x, y) {
       if (!tracking) return;
       var dx = x - startX, dy = y - startY;
@@ -256,18 +246,12 @@ function wireCarousel() {
       }
     }
 
-    _track.addEventListener('touchstart', function (e) {
-      onStart(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    _track.addEventListener('touchmove', function (e) {
-      onMove(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    _track.addEventListener('touchend', function (e) {
-      onEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-    });
-    _track.addEventListener('mousedown', function (e) { onStart(e.clientX, e.clientY); });
-    window.addEventListener('mousemove', function (e) { if (tracking) onMove(e.clientX, e.clientY); });
-    window.addEventListener('mouseup',   function (e) { onEnd(e.clientX, e.clientY); });
+    _track.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    _track.addEventListener('touchmove',  function (e) { onMove(e.touches[0].clientX, e.touches[0].clientY); },  { passive: true });
+    _track.addEventListener('touchend',   function (e) { onEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY); });
+    _track.addEventListener('mousedown',  function (e) { onStart(e.clientX, e.clientY); });
+    window.addEventListener('mousemove',  function (e) { if (tracking) onMove(e.clientX, e.clientY); });
+    window.addEventListener('mouseup',    function (e) { onEnd(e.clientX, e.clientY); });
 
     _track.addEventListener('click', function (e) {
       if (moved) { moved = false; return; }
