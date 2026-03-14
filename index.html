@@ -37,17 +37,7 @@
   <footer class="lang-footer-bar">© Clutter Byte</footer>
 
   <script>
-    try {
-      var saved = localStorage.getItem('cb-lang');
-      if (saved === 'en') location.replace('/home');
-      if (saved === 'es') location.replace('/home-es');
-    } catch(e) {}
-    document.getElementById('card-en').addEventListener('click', function () {
-      try { localStorage.setItem('cb-lang', 'en'); } catch(e) {}
-    });
-    document.getElementById('card-es').addEventListener('click', function () {
-      try { localStorage.setItem('cb-lang', 'es'); } catch(e) {}
-    });
+    try { localStorage.removeItem('cb-lang'); } catch(e) {}
   </script>
 
 </body>
