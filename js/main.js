@@ -53,8 +53,36 @@ function initPage(photos) {
   }
 
   if (countEl) countEl.style.display = 'none';
-  buildCarousel(section, photos);
-  initLightbox(photos);
+
+  // Show a minimal loading state — no alt text visible
+  if (section) section.innerHTML =
+    '<div class="carousel-loading" id="carousel-loading">' +
+      '<div class="carousel-loading-dot"></div>' +
+      '<div class="carousel-loading-dot"></div>' +
+      '<div class="carousel-loading-dot"></div>' +
+    '</div>';
+
+  // Preload every image before building the carousel
+  var loaded = 0;
+  var total  = photos.length;
+
+  function onLoad() {
+    loaded++;
+    if (loaded === total) {
+      // All images ready — swap loading state for carousel
+      var loadEl = document.getElementById('carousel-loading');
+      if (loadEl) loadEl.remove();
+      buildCarousel(section, photos);
+      initLightbox(photos);
+    }
+  }
+
+  photos.forEach(function (src) {
+    var img = new Image();
+    img.onload  = onLoad;
+    img.onerror = onLoad; // don't hang if one image 404s
+    img.src     = src;
+  });
 }
 
 // ── CAROUSEL — 3D coverflow, infinite, fluid, spam-safe ───────────────────

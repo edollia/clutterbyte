@@ -268,17 +268,6 @@ body::after {
 
 /* ── LOCATION CARDS ── */
 .loc-num { display: none; }
-.loc-name {
-  font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: 32px; letter-spacing: 3px; color: var(--text);
-  text-transform: uppercase; display: block;
-}
-.loc-sub { font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; display: block; }
-.loc-arrow {
-  position: absolute; top: 22px; right: 22px;
-  font-size: 15px; color: var(--text-dim);
-  transition: transform 0.3s var(--ease), color 0.25s;
-}
 
 /* ── RULES STRIP — compact, below location cards on home ── */
 .rules-strip {
@@ -300,8 +289,13 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
-  gap: 56px;
+  padding: 40px 24px;
+  gap: 44px;
+  /* Fit screen without scrolling on phones; shrink gracefully */
+  min-height: 0;
+}
+@media (max-height: 600px) {
+  .lang-wrap { gap: 28px; padding: 24px; }
 }
 .lang-brand {
   display: flex; flex-direction: column; align-items: center;
@@ -311,13 +305,14 @@ body::after {
   width: 20px; height: 20px;
   border: 2px solid var(--accent);
   transform: rotate(45deg);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   animation: langSpin 12s linear infinite;
+  flex-shrink: 0;
 }
 @keyframes langSpin { to { transform: rotate(405deg); } }
 .lang-name {
   font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: clamp(36px, 8vw, 62px);
+  font-size: clamp(32px, 7vw, 62px);
   letter-spacing: 7px; color: var(--accent); line-height: 1;
 }
 .lang-tagline {
@@ -330,8 +325,9 @@ body::after {
   gap: 2px;
   width: 100%;
   max-width: 520px;
+  flex-shrink: 0;
 }
-@media (max-width: 420px) { .lang-grid { grid-template-columns: 1fr; max-width: 280px; } }
+@media (max-width: 380px) { .lang-grid { grid-template-columns: 1fr; max-width: 280px; } }
 
 .lang-card {
   background: var(--bg2);
@@ -565,6 +561,25 @@ body::after {
   transition: border-color 0.2s, color 0.2s;
 }
 .lb-arrow:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── CAROUSEL LOADING STATE ── */
+.carousel-loading {
+  height: 62vh;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+@media (max-width: 900px) { .carousel-loading { height: 52vh; } }
+@media (max-width: 580px) { .carousel-loading { height: 44vh; } }
+.carousel-loading-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--bg3);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+.carousel-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.carousel-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse {
+  0%, 80%, 100% { background: var(--bg3); transform: scale(1); }
+  40%           { background: var(--accent); transform: scale(1.4); }
+}
 
 /* ── COMING SOON ── */
 .coming-soon {
