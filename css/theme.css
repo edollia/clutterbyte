@@ -86,9 +86,21 @@ body::after {
   transition: background 0.2s, color 0.2s;
   flex-shrink: 0;
   white-space: nowrap;
+  animation: contactGlow 2.6s ease-in-out infinite;
 }
-.header-contact-btn:hover { background: var(--accent); color: var(--bg); }
-.header-contact-btn.active { background: var(--accent); color: var(--bg); }
+/* Outside-to-inside glow — ring starts far, contracts toward the button */
+@keyframes contactGlow {
+  0%   { box-shadow: 0 0 0 7px rgba(212,184,150,0),   0 0 0 4px rgba(212,184,150,0.12); }
+  40%  { box-shadow: 0 0 0 4px rgba(212,184,150,0.12), 0 0 0 1px rgba(212,184,150,0.22); }
+  75%  { box-shadow: 0 0 0 1px rgba(212,184,150,0.18), 0 0 0 0px rgba(212,184,150,0.08); }
+  100% { box-shadow: 0 0 0 7px rgba(212,184,150,0),   0 0 0 4px rgba(212,184,150,0.12); }
+}
+.header-contact-btn:hover,
+.header-contact-btn.active {
+  background: var(--accent); color: var(--bg);
+  animation: none;
+  box-shadow: none;
+}
 
 /* Phone overlay dropdown */
 .phone-overlay {
@@ -165,7 +177,7 @@ body::after {
 }
 .hero-title {
   font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: clamp(58px, 12.5vw, 142px);
+  font-size: clamp(44px, 9.5vw, 116px);
   line-height: 0.87; letter-spacing: -1px; text-transform: uppercase;
   opacity: 0; animation: fadeUp 0.7s var(--ease) 0.15s forwards;
 }

@@ -303,22 +303,8 @@ function initLightbox(photos) {
     if (e.key === 'ArrowRight') lbGo(_lbIdx + 1);
     if (e.key === 'ArrowLeft')  lbGo(_lbIdx - 1);
   });
-
-  var lbx = 0, lbPinching = false;
-  lb.addEventListener('touchstart', function (e) {
-    // If 2+ fingers, it's a pinch — don't track as swipe
-    if (e.touches.length > 1) { lbPinching = true; return; }
-    lbPinching = false;
-    lbx = e.touches[0].clientX;
-  }, { passive: true });
-  lb.addEventListener('touchend', function (e) {
-    if (lbPinching) { lbPinching = false; return; }
-    // Also abort if fingers were added mid-gesture
-    if (e.touches.length > 0) return;
-    var d = e.changedTouches[0].clientX - lbx;
-    if (d < -40) lbGo(_lbIdx + 1);
-    if (d >  40) lbGo(_lbIdx - 1);
-  });
+  // No touch/swipe on lightbox — native pinch-zoom must be fully unobstructed.
+  // Use the arrow buttons or keyboard to navigate between photos.
 }
 
 function openLightbox(idx) {
