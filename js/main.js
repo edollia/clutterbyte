@@ -25,19 +25,20 @@ window.addEventListener('DOMContentLoaded', function () {
     ? PHOTOS[LOCATION].filter(Boolean) : [];
   var driveLink = (typeof DRIVE_LINKS !== 'undefined' && DRIVE_LINKS[LOCATION])
     ? DRIVE_LINKS[LOCATION] : '';
-  initPage(photos, driveLink);
+  var lang      = (typeof LANG !== 'undefined' && LANG === 'es') ? 'es' : 'en';
+  initPage(photos, driveLink, lang);
 });
 
-function initPage(photos, driveLink) {
+function initPage(photos, driveLink, lang) {
   var section = document.getElementById('carousel-section');
   var countEl = document.getElementById('photo-count');
 
   if (!photos.length) {
-    if (countEl) countEl.textContent = 'Photos coming soon';
+    if (countEl) countEl.textContent = lang === 'es' ? 'Fotos próximamente' : 'Photos coming soon';
     if (section) section.innerHTML =
       '<div class="coming-soon">' +
-        '<p class="coming-soon-title">Coming<br/>Soon</p>' +
-        '<p class="coming-soon-sub">Check back shortly</p>' +
+        '<p class="coming-soon-title">' + (lang === 'es' ? 'Próximamente' : 'Coming<br/>Soon') + '</p>' +
+        '<p class="coming-soon-sub">' + (lang === 'es' ? 'Vuelve pronto' : 'Check back shortly') + '</p>' +
       '</div>';
     return;
   }
@@ -59,7 +60,7 @@ function initPage(photos, driveLink) {
       if (loaded === photos.length) {
         var el = document.getElementById('carousel-loading');
         if (el) el.remove();
-        buildCarousel(section, photos, driveLink);
+        buildCarousel(section, photos, driveLink, lang);
         initLightbox(photos);
       }
     };
@@ -77,7 +78,7 @@ var _track     = null;
 var _hasCta    = false;
 var _driveLink = '';
 
-function buildCarousel(container, photos, driveLink) {
+function buildCarousel(container, photos, driveLink, lang) {
   _photos    = photos;
   _total     = photos.length;
   _idx       = 0;
@@ -85,10 +86,12 @@ function buildCarousel(container, photos, driveLink) {
   _hasCta    = !!driveLink;
   _driveLink = driveLink || '';
 
+  var isEs = (lang === 'es');
+
   // Build photo slides
   var photoHTML = photos.map(function (src, i) {
     return '<div class="cs" data-vi="' + i + '" data-real="' + i + '">' +
-      '<img src="' + src + '" alt="Photo ' + (i + 1) + '"' +
+      '<img src="' + src + '" alt="' + (isEs ? 'Foto ' : 'Photo ') + (i + 1) + '"' +
       ' loading="' + (i < 4 ? 'eager' : 'lazy') + '"' +
       ' draggable="false"></div>';
   }).join('');
@@ -96,19 +99,21 @@ function buildCarousel(container, photos, driveLink) {
   // Build CTA card if drive link present
   var ctaHTML = '';
   if (_hasCta) {
-    // Pick 6 photos spread across the set for the collage
     var picks = [];
     var step  = Math.max(1, Math.floor(_total / 6));
     for (var p = 0; p < 6 && p * step < _total; p++)
       picks.push(photos[p * step]);
-    // If fewer than 6, repeat from start
     while (picks.length < 6) picks.push(photos[picks.length % _total]);
 
     var collageImgs = picks.map(function (src, ci) {
       return '<img class="coll-img coll-' + (ci + 1) + '" src="' + src + '" alt="" aria-hidden="true" draggable="false">';
     }).join('');
 
-    var ctaVi = _total;
+    var ctaVi      = _total;
+    var ctaCount   = '100+';
+    var ctaLabel   = isEs ? 'más fotos en Google Drive' : 'more photos on Google Drive';
+    var ctaBtnText = isEs ? 'Ver Galería Completa ↗'    : 'View Full Gallery ↗';
+
     ctaHTML =
       '<div class="cs cs-cta" data-vi="' + ctaVi + '" data-cta="true">' +
         '<div class="cta-collage">' +
@@ -116,9 +121,9 @@ function buildCarousel(container, photos, driveLink) {
           '<div class="cta-collage-mask"></div>' +
         '</div>' +
         '<div class="cta-bottom">' +
-          '<span class="cta-count shine-text">100+</span>' +
-          '<span class="cta-label">more photos on Google Drive</span>' +
-          '<a class="cta-link" href="' + driveLink + '" target="_blank" rel="noopener">View Full Gallery ↗</a>' +
+          '<span class="cta-count shine-text">' + ctaCount + '</span>' +
+          '<span class="cta-label">' + ctaLabel + '</span>' +
+          '<a class="cta-link" href="' + driveLink + '" target="_blank" rel="noopener">' + ctaBtnText + '</a>' +
         '</div>' +
       '</div>';
   }
@@ -127,8 +132,8 @@ function buildCarousel(container, photos, driveLink) {
     '<div class="c-outer">' +
       '<div class="c-track" id="c-track">' + photoHTML + ctaHTML + '</div>' +
       '<div class="c-ui"><div class="c-arrows">' +
-        '<button class="c-arrow" id="c-prev" aria-label="Previous" disabled>&#8592;</button>' +
-        '<button class="c-arrow" id="c-next" aria-label="Next">&#8594;</button>' +
+        '<button class="c-arrow" id="c-prev" aria-label="' + (isEs ? 'Anterior' : 'Previous') + '" disabled>&#8592;</button>' +
+        '<button class="c-arrow" id="c-next" aria-label="' + (isEs ? 'Siguiente' : 'Next') + '">&#8594;</button>' +
       '</div></div>' +
     '</div>';
 
@@ -263,8 +268,8 @@ function wireCarousel() {
       if (vi === _vIdx) {
         // Center slide clicked
         if (s.dataset.cta) {
-          // CTA card — open Drive link (link inside handles it, but fallback)
-          window.open(_driveLink, '_blank', 'noopener');
+          // Let the <a> tag handle it — fallback for click on non-link area
+          window.open(_driveLink, '_blank');
         } else {
           if (_idx >= 0 && _idx < _total) openLightbox(_idx);
         }

@@ -741,8 +741,9 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 .coll-img {
   width: 100%; height: 100%;
   object-fit: cover;
-  filter: brightness(0.62) saturate(0.6);
+  filter: brightness(0.55) saturate(0.5) blur(2.5px);
   display: block;
+  transform: scale(1.08); /* compensate for blur edge bleed */
 }
 /* Individual subtle drift per cell */
 .coll-1 { animation: cellDrift1 9s ease-in-out infinite alternate; }
@@ -758,14 +759,15 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 @keyframes cellDrift5 { from{transform:scale(1.0)} to{transform:scale(1.05)} }
 @keyframes cellDrift6 { from{transform:scale(1.03)} to{transform:scale(1.0)} }
 
-/* Gradient mask — fades collage into CTA bottom */
+/* Gradient mask — fades collage into CTA bottom + frosted top layer */
 .cta-collage-mask {
   position: absolute; inset: 0;
   background: linear-gradient(
     to bottom,
-    transparent 0%,
+    rgba(28,28,26,0.18) 0%,
+    transparent 25%,
     transparent 40%,
-    rgba(28,28,26,0.7) 75%,
+    rgba(28,28,26,0.72) 75%,
     var(--bg2) 100%
   );
   pointer-events: none;
