@@ -99,29 +99,17 @@ function buildCarousel(container, photos, driveLink, lang) {
   // Build CTA card if drive link present
   var ctaHTML = '';
   if (_hasCta) {
-    var picks = [];
-    var step  = Math.max(1, Math.floor(_total / 6));
-    for (var p = 0; p < 6 && p * step < _total; p++)
-      picks.push(photos[p * step]);
-    while (picks.length < 6) picks.push(photos[picks.length % _total]);
-
-    var collageImgs = picks.map(function (src, ci) {
-      return '<img class="coll-img coll-' + (ci + 1) + '" src="' + src + '" alt="" aria-hidden="true" draggable="false">';
-    }).join('');
-
     var ctaVi      = _total;
-    var ctaCount   = '100+';
+    var bgSrc      = photos[0]; // first photo as blurred background
     var ctaLabel   = isEs ? 'más fotos en Google Drive' : 'more photos on Google Drive';
     var ctaBtnText = isEs ? 'Ver Galería Completa ↗'    : 'View Full Gallery ↗';
 
     ctaHTML =
       '<div class="cs cs-cta" data-vi="' + ctaVi + '" data-cta="true">' +
-        '<div class="cta-collage">' +
-          '<div class="cta-collage-inner">' + collageImgs + '</div>' +
-          '<div class="cta-collage-mask"></div>' +
-        '</div>' +
+        '<img class="cta-bg-img" src="' + bgSrc + '" alt="" aria-hidden="true" draggable="false">' +
+        '<div class="cta-collage-mask"></div>' +
         '<div class="cta-bottom">' +
-          '<span class="cta-count shine-text">' + ctaCount + '</span>' +
+          '<span class="cta-count shine-text">100+</span>' +
           '<span class="cta-label">' + ctaLabel + '</span>' +
           '<a class="cta-link" href="' + driveLink + '" target="_blank" rel="noopener">' + ctaBtnText + '</a>' +
         '</div>' +
