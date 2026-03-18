@@ -106,7 +106,9 @@ function buildCarousel(container, photos, driveLink, lang) {
 
     ctaHTML =
       '<div class="cs cs-cta" data-vi="' + ctaVi + '" data-cta="true">' +
-        '<img class="cta-bg-img" src="' + bgSrc + '" alt="" aria-hidden="true" draggable="false">' +
+        '<div class="cta-bg-wrap">' +
+          '<img class="cta-bg-img" src="' + bgSrc + '" alt="" aria-hidden="true" draggable="false">' +
+        '</div>' +
         '<div class="cta-collage-mask"></div>' +
         '<div class="cta-bottom">' +
           '<span class="cta-count shine-text">100+</span>' +
