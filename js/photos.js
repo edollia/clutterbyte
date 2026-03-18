@@ -2,15 +2,13 @@
 //  CLUTTER BYTE — PHOTOS
 //  ─────────────────────
 //  HOW TO ADD PHOTOS:
-//
-//  1. Drop your photo into temecula-pics/ or hemet-pics/
-//     Name it exactly: photo1.jpg, photo2.jpg … photo20.jpg
-//
-//  2. Remove the // on the matching line below to activate it
-//
+//  1. Drop photo into temecula-pics/ or hemet-pics/
+//     Name it: photo1.jpg, photo2.jpg … photo20.jpg
+//  2. Remove the // on the matching line below
 //  3. Upload to GitHub → live instantly
 //
-//  Leave an array empty [] → "Coming Soon" shows automatically.
+//  DRIVE LINKS: paste the Google Drive folder URL for each location.
+//  Leave as empty string '' to hide the CTA card for that location.
 // ─────────────────────────────────────────────────────────────────────────
 
 var PHOTOS = {
@@ -61,4 +59,9 @@ var PHOTOS = {
     // '/hemet-pics/photo20.jpg',
   ]
 
+};
+
+var DRIVE_LINKS = {
+  temecula: '',
+  hemet:    'https://drive.google.com/drive/folders/1Yy1zJX0Yg02XD0UbtmGRBbt0QXDertGH'
 };

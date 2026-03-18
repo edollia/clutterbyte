@@ -86,21 +86,9 @@ body::after {
   transition: background 0.2s, color 0.2s;
   flex-shrink: 0;
   white-space: nowrap;
-  animation: contactGlow 2.6s ease-in-out infinite;
 }
-/* Outside-to-inside glow — ring starts far, contracts toward the button */
-@keyframes contactGlow {
-  0%   { box-shadow: 0 0 0 7px rgba(212,184,150,0),   0 0 0 4px rgba(212,184,150,0.12); }
-  40%  { box-shadow: 0 0 0 4px rgba(212,184,150,0.12), 0 0 0 1px rgba(212,184,150,0.22); }
-  75%  { box-shadow: 0 0 0 1px rgba(212,184,150,0.18), 0 0 0 0px rgba(212,184,150,0.08); }
-  100% { box-shadow: 0 0 0 7px rgba(212,184,150,0),   0 0 0 4px rgba(212,184,150,0.12); }
-}
-.header-contact-btn:hover,
-.header-contact-btn.active {
-  background: var(--accent); color: var(--bg);
-  animation: none;
-  box-shadow: none;
-}
+.header-contact-btn:hover { background: var(--accent); color: var(--bg); }
+.header-contact-btn.active { background: var(--accent); color: var(--bg); }
 
 /* Phone overlay dropdown */
 .phone-overlay {
@@ -427,39 +415,6 @@ body::after {
 .footer-link { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
 .footer-link:hover { color: var(--accent); }
 
-/* Language switcher in footer */
-.footer-lang-switch {
-  font-family: 'Space Mono', monospace;
-  font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--text-dim); text-decoration: none;
-  border: 1px solid var(--border);
-  padding: 4px 10px;
-  transition: color 0.2s, border-color 0.2s;
-}
-.footer-lang-switch:hover { color: var(--accent); border-color: var(--accent); }
-
-/* Shine text — subtle gold shimmer left to right */
-.shine-text {
-  font-weight: 700;
-  background: linear-gradient(
-    90deg,
-    var(--text-mid) 0%,
-    var(--text-mid) 30%,
-    var(--accent)   50%,
-    var(--text-mid) 70%,
-    var(--text-mid) 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shine 3.5s linear infinite;
-}
-@keyframes shine {
-  from { background-position: 200% center; }
-  to   { background-position: -200% center; }
-}
-
 /* ── PAGE HEADER ── */
 .page-header { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); max-width: 1100px; margin: 0 auto; }
 .page-title {
@@ -573,10 +528,9 @@ body::after {
 .lightbox-img, #lb-img {
   max-width: 94vw; max-height: 92vh;
   object-fit: contain; display: block;
-  animation: lbIn 0.3s var(--ease);
-  /* Allow native pinch-zoom on mobile */
   touch-action: pinch-zoom;
   cursor: zoom-in;
+  animation: lbIn 0.3s var(--ease);
 }
 @keyframes lbIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -648,3 +602,201 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 @keyframes fadeUp  { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes ticker  { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── CONTACT BUTTON GLOW ── */
+.header-contact-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); border: 1px solid var(--accent);
+  background: transparent; padding: 6px 13px;
+  cursor: crosshair; flex-shrink: 0; white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+  animation: contactGlow 2.6s ease-in-out infinite;
+}
+@keyframes contactGlow {
+  0%   { box-shadow: 0 0 0 7px rgba(212,184,150,0),    0 0 0 4px rgba(212,184,150,0.10); }
+  40%  { box-shadow: 0 0 0 4px rgba(212,184,150,0.10), 0 0 0 1px rgba(212,184,150,0.20); }
+  75%  { box-shadow: 0 0 0 1px rgba(212,184,150,0.16), 0 0 0 0px rgba(212,184,150,0.06); }
+  100% { box-shadow: 0 0 0 7px rgba(212,184,150,0),    0 0 0 4px rgba(212,184,150,0.10); }
+}
+.header-contact-btn:hover,
+.header-contact-btn.active { background: var(--accent); color: var(--bg); animation: none; box-shadow: none; }
+
+/* ── PHONE OVERLAY ── */
+.phone-overlay {
+  position: fixed; top: 50px; left: 0; right: 0; z-index: 190;
+  background: var(--bg2); border-bottom: 1px solid var(--border-mid);
+  padding: 28px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  transform: translateY(-110%); opacity: 0;
+  transition: transform 0.42s cubic-bezier(0.16,1,0.3,1), opacity 0.32s ease;
+  pointer-events: none;
+}
+.phone-overlay.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.phone-overlay-left { display: flex; flex-direction: column; gap: 4px; }
+.phone-overlay-label { font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); }
+.phone-overlay-number {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(28px, 5vw, 46px); letter-spacing: 4px; color: var(--accent);
+  text-decoration: none; line-height: 1;
+  transition: color 0.2s, letter-spacing 0.3s var(--ease);
+}
+.phone-overlay-number:hover { color: var(--text); letter-spacing: 5px; }
+.phone-overlay-sub { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
+.phone-overlay-close {
+  font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-dim); background: none; border: none; cursor: crosshair; padding: 8px;
+  transition: color 0.2s; flex-shrink: 0;
+}
+.phone-overlay-close:hover { color: var(--accent); }
+.phone-backdrop {
+  position: fixed; inset: 0; top: 50px; z-index: 180;
+  background: rgba(0,0,0,0); pointer-events: none;
+  transition: background 0.32s ease;
+}
+.phone-backdrop.open { background: rgba(0,0,0,0.45); pointer-events: auto; }
+
+/* ── SHINE TEXT ── */
+.shine-text {
+  font-weight: 700;
+  background: linear-gradient(90deg,
+    var(--text-mid) 0%, var(--text-mid) 30%,
+    var(--accent) 50%,
+    var(--text-mid) 70%, var(--text-mid) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shine 3.5s linear infinite;
+}
+@keyframes shine {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+/* ── FOOTER LANG SWITCH ── */
+.footer-lang-switch {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-dim); text-decoration: none;
+  border: 1px solid var(--border); padding: 4px 10px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.footer-lang-switch:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── CAROUSEL LOADING DOTS ── */
+.carousel-loading {
+  height: 62vh; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+@media (max-width: 900px) { .carousel-loading { height: 52vh; } }
+@media (max-width: 580px) { .carousel-loading { height: 44vh; } }
+.carousel-loading-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--bg3);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+.carousel-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.carousel-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse {
+  0%,80%,100% { background: var(--bg3); transform: scale(1); }
+  40%         { background: var(--accent); transform: scale(1.4); }
+}
+
+/* ── CTA CARD ── */
+.cs-cta {
+  cursor: pointer;
+  border: 1px solid var(--border-mid) !important;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  animation: ctaGlow 3s ease-in-out infinite;
+}
+@keyframes ctaGlow {
+  0%,100% { box-shadow: 0 0 0 1px rgba(212,184,150,0.08), 0 0 24px rgba(212,184,150,0.04); }
+  50%     { box-shadow: 0 0 0 1px rgba(212,184,150,0.22), 0 0 40px rgba(212,184,150,0.10); }
+}
+.cs-cta.on { animation: ctaGlowOn 3s ease-in-out infinite; }
+@keyframes ctaGlowOn {
+  0%,100% { box-shadow: 0 0 0 1px rgba(212,184,150,0.2), 0 32px 80px rgba(0,0,0,0.5); }
+  50%     { box-shadow: 0 0 0 1px rgba(212,184,150,0.5), 0 32px 80px rgba(0,0,0,0.5); }
+}
+
+/* Collage top 65% */
+.cta-collage {
+  position: relative;
+  flex: 0 0 65%;
+  overflow: hidden;
+  background: var(--bg3);
+}
+.cta-collage-inner {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  animation: collageDrift 7s ease-in-out infinite alternate;
+  transform-origin: center center;
+}
+@keyframes collageDrift {
+  from { transform: scale(1.0) rotate(0deg); }
+  to   { transform: scale(1.05) rotate(0.4deg); }
+}
+.coll-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(0.62) saturate(0.6);
+  display: block;
+}
+/* Individual subtle drift per cell */
+.coll-1 { animation: cellDrift1 9s ease-in-out infinite alternate; }
+.coll-2 { animation: cellDrift2 7s ease-in-out infinite alternate; }
+.coll-3 { animation: cellDrift3 11s ease-in-out infinite alternate; }
+.coll-4 { animation: cellDrift4 8s ease-in-out infinite alternate; }
+.coll-5 { animation: cellDrift5 10s ease-in-out infinite alternate; }
+.coll-6 { animation: cellDrift6 6s ease-in-out infinite alternate; }
+@keyframes cellDrift1 { from{transform:scale(1.0)} to{transform:scale(1.06)} }
+@keyframes cellDrift2 { from{transform:scale(1.04)} to{transform:scale(1.0)} }
+@keyframes cellDrift3 { from{transform:scale(1.0)} to{transform:scale(1.08)} }
+@keyframes cellDrift4 { from{transform:scale(1.06)} to{transform:scale(1.0)} }
+@keyframes cellDrift5 { from{transform:scale(1.0)} to{transform:scale(1.05)} }
+@keyframes cellDrift6 { from{transform:scale(1.03)} to{transform:scale(1.0)} }
+
+/* Gradient mask — fades collage into CTA bottom */
+.cta-collage-mask {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 40%,
+    rgba(28,28,26,0.7) 75%,
+    var(--bg2) 100%
+  );
+  pointer-events: none;
+}
+
+/* CTA bottom 35% */
+.cta-bottom {
+  flex: 0 0 35%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px; padding: 16px 20px;
+  background: var(--bg2);
+  text-align: center;
+}
+.cta-count {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(36px, 6vw, 58px);
+  letter-spacing: 4px; line-height: 1;
+  display: block;
+}
+.cta-label {
+  font-size: 8px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-dim); display: block;
+}
+.cta-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); border: 1px solid var(--accent);
+  padding: 7px 16px; text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.cta-link:hover { background: var(--accent); color: var(--bg); }
