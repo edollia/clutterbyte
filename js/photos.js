@@ -65,3 +65,8 @@ var DRIVE_LINKS = {
   temecula: '',
   hemet:    'https://drive.google.com/drive/folders/1Yy1zJX0Yg02XD0UbtmGRBbt0QXDertGH'
 };
+
+var CTA_BACKGROUNDS = {
+  temecula: '',
+  hemet:    '/hemet-pics/blurry.jpg'
+};

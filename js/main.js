@@ -25,11 +25,13 @@ window.addEventListener('DOMContentLoaded', function () {
     ? PHOTOS[LOCATION].filter(Boolean) : [];
   var driveLink = (typeof DRIVE_LINKS !== 'undefined' && DRIVE_LINKS[LOCATION])
     ? DRIVE_LINKS[LOCATION] : '';
+  var ctaBg     = (typeof CTA_BACKGROUNDS !== 'undefined' && CTA_BACKGROUNDS[LOCATION])
+    ? CTA_BACKGROUNDS[LOCATION] : '';
   var lang      = (typeof LANG !== 'undefined' && LANG === 'es') ? 'es' : 'en';
-  initPage(photos, driveLink, lang);
+  initPage(photos, driveLink, lang, ctaBg);
 });
 
-function initPage(photos, driveLink, lang) {
+function initPage(photos, driveLink, lang, ctaBg) {
   var section = document.getElementById('carousel-section');
   var countEl = document.getElementById('photo-count');
 
@@ -60,7 +62,7 @@ function initPage(photos, driveLink, lang) {
       if (loaded === photos.length) {
         var el = document.getElementById('carousel-loading');
         if (el) el.remove();
-        buildCarousel(section, photos, driveLink, lang);
+        buildCarousel(section, photos, driveLink, lang, ctaBg);
         initLightbox(photos);
       }
     };
@@ -78,7 +80,7 @@ var _track     = null;
 var _hasCta    = false;
 var _driveLink = '';
 
-function buildCarousel(container, photos, driveLink, lang) {
+function buildCarousel(container, photos, driveLink, lang, ctaBg) {
   _photos    = photos;
   _total     = photos.length;
   _idx       = 0;
@@ -100,7 +102,7 @@ function buildCarousel(container, photos, driveLink, lang) {
   var ctaHTML = '';
   if (_hasCta) {
     var ctaVi      = _total;
-    var bgSrc      = photos[0]; // first photo as blurred background
+    var bgSrc      = ctaBg; // pre-blurred image supplied via CTA_BACKGROUNDS
     var ctaLabel   = isEs ? 'más fotos en Google Drive' : 'more photos on Google Drive';
     var ctaBtnText = isEs ? 'Ver Galería Completa ↗'    : 'View Full Gallery ↗';
 
