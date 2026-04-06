@@ -1,3 +1,0 @@
-Drop Hemet photos here.
-Any format: .jpg .jpeg .heic .png .webp .gif
-Then add filenames to js/photos.js
