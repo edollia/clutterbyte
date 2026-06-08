@@ -8,8 +8,22 @@
   var closeBtn = document.getElementById('phone-overlay-close');
   if (!btn || !overlay || !backdrop) return;
 
-  function open()   { overlay.classList.add('open'); backdrop.classList.add('open'); btn.classList.add('active'); }
-  function close()  { overlay.classList.remove('open'); backdrop.classList.remove('open'); btn.classList.remove('active'); }
+  btn.setAttribute('aria-expanded', 'false');
+  if (!overlay.id) overlay.id = 'phone-overlay';
+  btn.setAttribute('aria-controls', overlay.id);
+
+  function open() {
+    overlay.classList.add('open');
+    backdrop.classList.add('open');
+    btn.classList.add('active');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+  function close() {
+    overlay.classList.remove('open');
+    backdrop.classList.remove('open');
+    btn.classList.remove('active');
+    btn.setAttribute('aria-expanded', 'false');
+  }
   function toggle() { overlay.classList.contains('open') ? close() : open(); }
 
   btn.addEventListener('click', function (e) { e.stopPropagation(); toggle(); });
@@ -79,6 +93,9 @@ var _slides    = [];   // all slide elements
 var _track     = null;
 var _hasCta    = false;
 var _driveLink = '';
+var _carouselKeyBound = false;
+var _dragBoundTrack = null;
+var _lbKeyBound = false;
 
 function buildCarousel(container, photos, driveLink, lang, ctaBg) {
   _photos    = photos;
@@ -204,14 +221,19 @@ function wireCarousel() {
   if (prev) prev.addEventListener('click', function (e) { e.stopPropagation(); step(-1); });
   if (next) next.addEventListener('click', function (e) { e.stopPropagation(); step(1); });
 
-  document.addEventListener('keydown', function (e) {
-    var lb = document.getElementById('lightbox');
-    if (lb && lb.classList.contains('active')) return;
-    if (e.key === 'ArrowRight') step(1);
-    if (e.key === 'ArrowLeft')  step(-1);
-  });
+  if (!_carouselKeyBound) {
+    _carouselKeyBound = true;
+    document.addEventListener('keydown', function (e) {
+      if (!_slides.length) return;
+      var lb = document.getElementById('lightbox');
+      if (lb && lb.classList.contains('active')) return;
+      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft')  step(-1);
+    });
+  }
 
-  if (_track) {
+  if (_track && _dragBoundTrack !== _track) {
+    _dragBoundTrack = _track;
     var startX = 0, startY = 0, moved = false, tracking = false;
 
     function onStart(x, y) { startX=x; startY=y; moved=false; tracking=true; }
@@ -257,11 +279,19 @@ function wireCarousel() {
       var s = e.target.closest('.cs');
       if (!s) return;
       var vi = parseInt(s.dataset.vi);
+      var ctaLink = e.target.closest('.cta-link');
+
+      if (ctaLink && vi !== _vIdx) {
+        e.preventDefault();
+        step(vi > _vIdx ? 1 : -1);
+        return;
+      }
+
       if (vi === _vIdx) {
-        // Center slide clicked
+        // Center slide clicked.
         if (s.dataset.cta) {
-          // Let the <a> tag handle it — fallback for click on non-link area
-          window.open(_driveLink, '_blank');
+          if (ctaLink) return;
+          window.open(_driveLink, '_blank', 'noopener');
         } else {
           if (_idx >= 0 && _idx < _total) openLightbox(_idx);
         }
@@ -284,17 +314,21 @@ function initLightbox(photos) {
   var next  = document.getElementById('lb-next');
   if (!lb) return;
 
-  close.addEventListener('click', closeLightbox);
+  if (close) close.addEventListener('click', closeLightbox);
   lb.addEventListener('click', function (e) { if (e.target === lb) closeLightbox(); });
   if (prev) prev.addEventListener('click', function () { lbGo(_lbIdx - 1); });
   if (next) next.addEventListener('click', function () { lbGo(_lbIdx + 1); });
 
-  document.addEventListener('keydown', function (e) {
-    if (!lb.classList.contains('active')) return;
-    if (e.key === 'Escape')     closeLightbox();
-    if (e.key === 'ArrowRight') lbGo(_lbIdx + 1);
-    if (e.key === 'ArrowLeft')  lbGo(_lbIdx - 1);
-  });
+  if (!_lbKeyBound) {
+    _lbKeyBound = true;
+    document.addEventListener('keydown', function (e) {
+      var activeLb = document.getElementById('lightbox');
+      if (!activeLb || !activeLb.classList.contains('active')) return;
+      if (e.key === 'Escape')     closeLightbox();
+      if (e.key === 'ArrowRight') lbGo(_lbIdx + 1);
+      if (e.key === 'ArrowLeft')  lbGo(_lbIdx - 1);
+    });
+  }
   // No touch swipe — native pinch-zoom must work freely. Buttons only.
 }
 
