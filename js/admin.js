@@ -17,6 +17,8 @@
   var lastHistoryAt = 0;
   var cloudSession = null;
   var cloudAuthorized = false;
+  var authCheckPromise = null;
+  var authCheckId = 0;
   var hydrating = false;
   var syncing = false;
   var previewLang = 'en';
@@ -245,12 +247,18 @@
     cms.onAuthStateChange(function (event, session) {
       cloudSession = session || null;
       cloudAuthorized = false;
+      if (!session && !hydrating) {
+        authCheckId++;
+        authCheckPromise = null;
+        setDashboardLocked(true);
+      }
       renderAuth();
       if (session && event === 'SIGNED_IN') loadCloudState();
     });
   }
 
   async function loginToCloud() {
+    if (hydrating) return;
     if (!cloudConfigured()) {
       renderAuth('Login is temporarily unavailable.');
       markSaved('Locked');
@@ -277,24 +285,47 @@
 
   async function signOutCloud() {
     if (!cloudConfigured()) return;
+    authCheckId++;
+    authCheckPromise = null;
     try {
       await cms.signOut();
     } catch (e) {}
     cloudSession = null;
     cloudAuthorized = false;
+    hydrating = false;
     setDashboardLocked(true);
     renderAuth();
   }
 
   async function loadCloudState() {
     if (!cloudConfigured() || !cloudSession) return false;
-    hydrating = true;
-    markSaved('Loading cloud...');
+    if (authCheckPromise) return authCheckPromise;
+    authCheckPromise = doLoadCloudState();
     try {
-      var allowed = cms.verifyAdmin ? await cms.verifyAdmin() : false;
+      return await authCheckPromise;
+    } finally {
+      authCheckPromise = null;
+    }
+  }
+
+  async function doLoadCloudState() {
+    var checkId = ++authCheckId;
+    var finalMessage = '';
+    hydrating = true;
+    setDashboardLocked(true);
+    renderAuth();
+    markSaved('Checking access...');
+    try {
+      var allowed = await withTimeout(
+        cms.verifyAdmin ? cms.verifyAdmin() : Promise.resolve(false),
+        12000,
+        'access-timeout'
+      );
+      if (checkId !== authCheckId) return false;
       if (!allowed) throw new Error('not-admin');
 
-      var cloudState = await cms.loadEditorData();
+      var cloudState = await withTimeout(cms.loadEditorData(), 16000, 'data-timeout');
+      if (checkId !== authCheckId) return false;
       if (cloudState && cloudState.cities && cloudState.cities.length) {
         state = normalizeState(cloudState);
         selectedCityId = state.cities[0] ? state.cities[0].id : '';
@@ -307,17 +338,23 @@
       render();
       return true;
     } catch (error) {
+      if (checkId !== authCheckId) return false;
       cloudAuthorized = false;
       cloudSession = null;
       try { await cms.signOut(); } catch (e) {}
       setDashboardLocked(true);
       markSaved('Cloud load failed');
-      renderAuth(error && error.message === 'not-admin'
+      finalMessage = error && error.message === 'not-admin'
         ? 'This account is not allowed to open the dashboard.'
-        : 'Dashboard connection unavailable.');
+        : (error && /timeout/.test(error.message)
+          ? 'Dashboard check timed out. Try again.'
+          : 'Dashboard connection unavailable.');
       return false;
     } finally {
-      hydrating = false;
+      if (checkId === authCheckId) {
+        hydrating = false;
+        renderAuth(finalMessage || undefined);
+      }
     }
   }
 
@@ -339,6 +376,11 @@
     if (loginForm) loginForm.style.display = !loggedIn ? 'grid' : 'none';
     if (actions) actions.style.display = configured && loggedIn ? 'flex' : 'none';
     if (syncButton) syncButton.style.display = configured && loggedIn && cloudAuthorized ? '' : 'none';
+    var submitButton = byId('ed-login-submit');
+    if (submitButton) {
+      submitButton.disabled = hydrating;
+      submitButton.textContent = hydrating ? 'Checking...' : 'Log in';
+    }
     document.body.classList.toggle('ed-cloud-ready', configured && loggedIn && cloudAuthorized);
     document.body.classList.toggle('ed-local-only', !configured);
     setDashboardLocked(!(configured && loggedIn && cloudAuthorized));
@@ -353,6 +395,28 @@
 
   function cloudConfigured() {
     return !!(cms && cms.isConfigured && cms.isConfigured());
+  }
+
+  function withTimeout(promise, ms, message) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var timer = window.setTimeout(function () {
+        if (done) return;
+        done = true;
+        reject(new Error(message || 'timeout'));
+      }, ms);
+      Promise.resolve(promise).then(function (value) {
+        if (done) return;
+        done = true;
+        window.clearTimeout(timer);
+        resolve(value);
+      }).catch(function (error) {
+        if (done) return;
+        done = true;
+        window.clearTimeout(timer);
+        reject(error);
+      });
+    });
   }
 
   function loadState() {
@@ -493,7 +557,7 @@
     if (!root) return;
     var active = state.cities.filter(function (city) { return city.active; }).length;
     var uploads = allPhotos().filter(function (photo) { return photo.kind === 'upload'; }).length;
-    var cloud = cloudConfigured() && cloudSession ? 'live' : 'local';
+    var cloud = cloudConfigured() && cloudAuthorized ? 'live' : 'locked';
     root.innerHTML =
       metricHTML(state.cities.length, 'cities') +
       metricHTML(totalPhotos(), 'photos') +
@@ -876,7 +940,7 @@
         alt: altFor(city, city.photos.length)
       };
 
-      if (cloudConfigured() && cloudSession) {
+      if (cloudConfigured() && cloudAuthorized) {
         try {
           var uploaded = await cms.uploadPhoto(city, prepared, function (percent, label) {
             updateProgress(percent, label + ' ' + file.name);
@@ -913,7 +977,7 @@
     var oldPath = photo.storagePath;
     var prepared = await compressImage(file);
     updateProgress(20, 'Replacing photo');
-    if (cloudConfigured() && cloudSession) {
+    if (cloudConfigured() && cloudAuthorized) {
       var uploaded = await cms.uploadPhoto(city, prepared, function (percent, label) {
         updateProgress(percent, label);
       });
@@ -975,7 +1039,7 @@
     if (!window.confirm('Remove all photos from ' + city.name + ' in this draft?')) return;
     remember('Before photos cleared');
     city.photos.forEach(function (photo) {
-      if (cloudConfigured() && cloudSession && photo.storageBucket && photo.storagePath) {
+      if (cloudConfigured() && cloudAuthorized && photo.storageBucket && photo.storagePath) {
         cms.deleteStorageObject(photo.storageBucket, photo.storagePath);
       }
     });
@@ -1016,7 +1080,7 @@
     } else if (actionName === 'remove') {
       city.photos.splice(index, 1);
       revokePreview(photo.id);
-      if (cloudConfigured() && cloudSession && photo.storageBucket && photo.storagePath) {
+      if (cloudConfigured() && cloudAuthorized && photo.storageBucket && photo.storagePath) {
         cms.deleteStorageObject(photo.storageBucket, photo.storagePath);
       }
       if (city.coverId === photo.id) city.coverId = city.photos[0] ? city.photos[0].id : '';
@@ -1090,7 +1154,7 @@
   }
 
   function scheduleCloudSync() {
-    if (hydrating || !cloudConfigured() || !cloudSession) return;
+    if (hydrating || !cloudConfigured() || !cloudAuthorized) return;
     clearTimeout(cloudTimer);
     cloudTimer = window.setTimeout(function () {
       syncCloudNow('Cloud saved');
@@ -1098,7 +1162,7 @@
   }
 
   async function syncCloudNow(message) {
-    if (syncing || !cloudConfigured() || !cloudSession) return;
+    if (syncing || !cloudConfigured() || !cloudAuthorized) return;
     syncing = true;
     markSaved('Syncing cloud...');
     try {
@@ -1122,7 +1186,7 @@
     if (node) node.textContent = text || 'Autosaved';
     clearTimeout(statusTimer);
     statusTimer = window.setTimeout(function () {
-      if (node) node.textContent = cloudConfigured() && cloudSession ? 'Cloud autosaved' : 'Autosaved';
+      if (node) node.textContent = cloudConfigured() && cloudAuthorized ? 'Cloud autosaved' : 'Autosaved';
     }, 1800);
   }
 
@@ -1134,7 +1198,7 @@
       window.localStorage.removeItem(LEGACY_KEY);
     } catch (e) {}
     revokeAllPreviews();
-    if (cloudConfigured() && cloudSession) {
+    if (cloudConfigured() && cloudAuthorized) {
       await loadCloudState();
       flash(button, 'Cloud reset');
       return;
