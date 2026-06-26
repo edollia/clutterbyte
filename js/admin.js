@@ -225,8 +225,13 @@
   async function initCloud() {
     renderAuth();
     if (!cloudConfigured()) {
-      document.body.classList.remove('ed-locked');
-      markSaved('Local mode');
+      if (localDashboardAllowed()) {
+        document.body.classList.remove('ed-locked');
+        markSaved('Local mode');
+      } else {
+        document.body.classList.add('ed-locked');
+        markSaved('Cloud setup needed');
+      }
       renderAuth();
       return;
     }
@@ -302,6 +307,7 @@
   function renderAuth(errorText) {
     var configured = cloudConfigured();
     var loggedIn = !!cloudSession;
+    var localAllowed = localDashboardAllowed();
     var status = byId('ed-cloud-status');
     var loginForm = byId('ed-login-form');
     var actions = document.querySelector('.ed-cloud-actions');
@@ -309,17 +315,28 @@
     if (status) {
       status.textContent = errorText || (configured
         ? (loggedIn ? 'Cloud autosave is active. Phone editing is enabled.' : 'Log in to edit live Supabase data.')
-        : 'Paste Supabase URL/key into js/ed-config.js to enable phone login and live uploads.');
+        : (localAllowed
+          ? 'Local preview mode. Add Supabase URL/key before publishing /ed.'
+          : 'Dashboard is locked until Supabase URL/key are added in js/ed-config.js.'));
     }
     if (loginForm) loginForm.style.display = configured && !loggedIn ? 'grid' : 'none';
     if (actions) actions.style.display = configured && loggedIn ? 'flex' : 'none';
     document.body.classList.toggle('ed-cloud-ready', configured && loggedIn);
     document.body.classList.toggle('ed-local-only', !configured);
-    document.body.classList.toggle('ed-locked', configured && !loggedIn);
+    document.body.classList.toggle('ed-locked', configured ? !loggedIn : !localAllowed);
   }
 
   function cloudConfigured() {
     return !!(cms && cms.isConfigured && cms.isConfigured());
+  }
+
+  function localDashboardAllowed() {
+    var host = window.location.hostname;
+    return window.location.protocol === 'file:'
+      || host === 'localhost'
+      || host === '127.0.0.1'
+      || host === '0.0.0.0'
+      || host === '::1';
   }
 
   function loadState() {
