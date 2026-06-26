@@ -16,6 +16,7 @@
   var history = [];
   var lastHistoryAt = 0;
   var cloudSession = null;
+  var cloudAuthorized = false;
   var hydrating = false;
   var syncing = false;
   var previewLang = 'en';
@@ -225,35 +226,36 @@
   async function initCloud() {
     renderAuth();
     if (!cloudConfigured()) {
-      if (localDashboardAllowed()) {
-        document.body.classList.remove('ed-locked');
-        markSaved('Local mode');
-      } else {
-        document.body.classList.add('ed-locked');
-        markSaved('Cloud setup needed');
-      }
+      setDashboardLocked(true);
+      markSaved('Locked');
       renderAuth();
       return;
     }
 
     try {
       cloudSession = await cms.getSession();
+      cloudAuthorized = false;
       renderAuth();
       if (cloudSession) await loadCloudState();
     } catch (error) {
       markSaved('Cloud unavailable');
-      renderAuth(error.message || 'Cloud unavailable');
+      renderAuth('Dashboard connection unavailable.');
     }
 
     cms.onAuthStateChange(function (event, session) {
       cloudSession = session || null;
+      cloudAuthorized = false;
       renderAuth();
       if (session && event === 'SIGNED_IN') loadCloudState();
     });
   }
 
   async function loginToCloud() {
-    if (!cloudConfigured()) return;
+    if (!cloudConfigured()) {
+      renderAuth('Login is temporarily unavailable.');
+      markSaved('Locked');
+      return;
+    }
     var email = readValue('ed-login-email');
     var password = readRawValue('ed-login-password');
     if (!email || !password) {
@@ -263,11 +265,12 @@
     markSaved('Logging in...');
     try {
       cloudSession = await cms.signIn(email, password);
+      cloudAuthorized = false;
       setValue('ed-login-password', '');
-      await loadCloudState();
-      markSaved('Logged in');
+      var unlocked = await loadCloudState();
+      markSaved(unlocked ? 'Logged in' : 'Locked');
     } catch (error) {
-      renderAuth(error.message || 'Login failed');
+      renderAuth('Login failed. Check email and password.');
       markSaved('Login failed');
     }
   }
@@ -278,27 +281,41 @@
       await cms.signOut();
     } catch (e) {}
     cloudSession = null;
-    document.body.classList.add('ed-locked');
+    cloudAuthorized = false;
+    setDashboardLocked(true);
     renderAuth();
   }
 
   async function loadCloudState() {
-    if (!cloudConfigured() || !cloudSession) return;
+    if (!cloudConfigured() || !cloudSession) return false;
     hydrating = true;
     markSaved('Loading cloud...');
     try {
+      var allowed = cms.verifyAdmin ? await cms.verifyAdmin() : false;
+      if (!allowed) throw new Error('not-admin');
+
       var cloudState = await cms.loadEditorData();
       if (cloudState && cloudState.cities && cloudState.cities.length) {
         state = normalizeState(cloudState);
         selectedCityId = state.cities[0] ? state.cities[0].id : '';
         persist();
       }
-      document.body.classList.remove('ed-locked');
+      cloudAuthorized = true;
+      setDashboardLocked(false);
       markSaved('Cloud loaded');
+      renderAuth();
       render();
+      return true;
     } catch (error) {
+      cloudAuthorized = false;
+      cloudSession = null;
+      try { await cms.signOut(); } catch (e) {}
+      setDashboardLocked(true);
       markSaved('Cloud load failed');
-      renderAuth(error.message || 'Could not load Supabase data');
+      renderAuth(error && error.message === 'not-admin'
+        ? 'This account is not allowed to open the dashboard.'
+        : 'Dashboard connection unavailable.');
+      return false;
     } finally {
       hydrating = false;
     }
@@ -307,36 +324,35 @@
   function renderAuth(errorText) {
     var configured = cloudConfigured();
     var loggedIn = !!cloudSession;
-    var localAllowed = localDashboardAllowed();
     var status = byId('ed-cloud-status');
     var loginForm = byId('ed-login-form');
     var actions = document.querySelector('.ed-cloud-actions');
+    var syncButton = byId('ed-sync-now');
 
     if (status) {
       status.textContent = errorText || (configured
-        ? (loggedIn ? 'Cloud autosave is active. Phone editing is enabled.' : 'Log in to edit live Supabase data.')
-        : (localAllowed
-          ? 'Local preview mode. Add Supabase URL/key before publishing /ed.'
-          : 'Dashboard is locked until Supabase URL/key are added in js/ed-config.js.'));
+        ? (loggedIn
+          ? (cloudAuthorized ? 'Signed in. Cloud autosave is active.' : 'Checking dashboard access...')
+          : 'Enter your dashboard email and password.')
+        : 'Enter your dashboard email and password.');
     }
-    if (loginForm) loginForm.style.display = configured && !loggedIn ? 'grid' : 'none';
+    if (loginForm) loginForm.style.display = !loggedIn ? 'grid' : 'none';
     if (actions) actions.style.display = configured && loggedIn ? 'flex' : 'none';
-    document.body.classList.toggle('ed-cloud-ready', configured && loggedIn);
+    if (syncButton) syncButton.style.display = configured && loggedIn && cloudAuthorized ? '' : 'none';
+    document.body.classList.toggle('ed-cloud-ready', configured && loggedIn && cloudAuthorized);
     document.body.classList.toggle('ed-local-only', !configured);
-    document.body.classList.toggle('ed-locked', configured ? !loggedIn : !localAllowed);
+    setDashboardLocked(!(configured && loggedIn && cloudAuthorized));
+  }
+
+  function setDashboardLocked(locked) {
+    document.body.classList.toggle('ed-locked', !!locked);
+    document.querySelectorAll('[data-ed-gated]').forEach(function (node) {
+      node.hidden = !!locked;
+    });
   }
 
   function cloudConfigured() {
     return !!(cms && cms.isConfigured && cms.isConfigured());
-  }
-
-  function localDashboardAllowed() {
-    var host = window.location.hostname;
-    return window.location.protocol === 'file:'
-      || host === 'localhost'
-      || host === '127.0.0.1'
-      || host === '0.0.0.0'
-      || host === '::1';
   }
 
   function loadState() {

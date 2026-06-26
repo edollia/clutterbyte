@@ -45,6 +45,14 @@
     if (result.error) throw result.error;
   }
 
+  async function verifyAdmin() {
+    var api = getClient();
+    if (!api) return false;
+    var result = await api.rpc('is_ed_admin');
+    if (result.error) throw result.error;
+    return result.data === true;
+  }
+
   function onAuthStateChange(callback) {
     var api = getClient();
     if (!api) return function () {};
@@ -387,6 +395,7 @@
     getSession: getSession,
     signIn: signIn,
     signOut: signOut,
+    verifyAdmin: verifyAdmin,
     onAuthStateChange: onAuthStateChange,
     loadPublicData: loadPublicData,
     loadEditorData: loadEditorData,

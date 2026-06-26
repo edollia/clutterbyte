@@ -10,7 +10,7 @@
   <link rel="manifest" href="/site.webmanifest"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link rel="stylesheet" href="/css/theme.css"/>
+  <link rel="stylesheet" href="/css/theme.css?v=20260626-auth-lock"/>
   <style>.ed-locked .ed-private,.ed-locked .ed-mobile-nav{display:none}</style>
 </head>
 <body class="admin-body ed-body simple-mode ed-mobile-view-cities ed-locked">
@@ -27,7 +27,7 @@
   </header>
 
   <main class="ed-app">
-    <section class="ed-command">
+    <section class="ed-command ed-private" data-ed-gated hidden>
       <div>
         <p class="admin-kicker">Private tools</p>
         <h1 class="admin-title">Dashboard</h1>
@@ -44,9 +44,9 @@
 
     <section class="ed-card ed-auth" id="ed-auth-card" aria-labelledby="ed-auth-title">
       <div>
-        <p class="admin-kicker">Cloud mode</p>
+        <p class="admin-kicker">Private access</p>
         <h2 class="admin-panel-title" id="ed-auth-title">Dashboard Login</h2>
-        <p class="admin-panel-sub" id="ed-cloud-status">Checking Supabase config...</p>
+        <p class="admin-panel-sub" id="ed-cloud-status">Enter your dashboard email and password.</p>
       </div>
       <form class="ed-login-form" id="ed-login-form">
         <input class="admin-input" id="ed-login-email" type="email" autocomplete="username" placeholder="Email" aria-label="Email"/>
@@ -59,7 +59,7 @@
       </div>
     </section>
 
-    <nav class="ed-mobile-nav" aria-label="Editor sections">
+    <nav class="ed-mobile-nav" aria-label="Editor sections" data-ed-gated hidden>
       <button class="ed-mobile-tab active" data-mobile-view="cities" type="button">Cities</button>
       <button class="ed-mobile-tab" data-mobile-view="photos" type="button">Photos</button>
       <button class="ed-mobile-tab" data-mobile-view="publish" type="button">Publish</button>
@@ -67,9 +67,9 @@
       <button class="ed-mobile-tab" data-mobile-view="preview" type="button">Preview</button>
     </nav>
 
-    <section class="ed-metrics ed-private" id="ed-metrics" aria-label="Draft summary"></section>
+    <section class="ed-metrics ed-private" id="ed-metrics" aria-label="Draft summary" data-ed-gated hidden></section>
 
-    <div class="ed-workspace ed-private">
+    <div class="ed-workspace ed-private" data-ed-gated hidden>
       <aside class="ed-card ed-rail" aria-labelledby="cities-title" data-ed-pane="cities">
         <div class="ed-card-head">
           <div>
@@ -342,11 +342,11 @@
     <a href="/home" class="footer-link">← Site</a>
   </footer>
 
-  <script src="/js/ed-config.js"></script>
+  <script src="/js/ed-config.js?v=20260626-auth-lock"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabase-cms.js"></script>
-  <script src="/js/photos.js"></script>
-  <script src="/js/admin.js"></script>
+  <script src="/js/supabase-cms.js?v=20260626-auth-lock"></script>
+  <script src="/js/photos.js?v=20260626-auth-lock"></script>
+  <script src="/js/admin.js?v=20260626-auth-lock"></script>
 
 </body>
 </html>

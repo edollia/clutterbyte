@@ -1427,6 +1427,12 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
   margin: 0 auto;
   padding: 22px;
 }
+.ed-locked .ed-app {
+  width: min(520px, 100%);
+  min-height: calc(100svh - 150px);
+  display: grid;
+  align-content: center;
+}
 .ed-command {
   display: flex;
   align-items: flex-end;
@@ -1492,6 +1498,11 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
   align-items: center;
   margin: 14px 0;
   padding: 12px;
+}
+.ed-locked .ed-auth {
+  grid-template-columns: 1fr;
+  margin: 0;
+  padding: 18px;
 }
 .ed-login-form {
   display: grid;
