@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clutter Byte — Temecula</title>
-  <meta name="description" content="View Temecula estate sale photos, schedule, and sale details from Clutter Byte."/>
+  <title>Clutter Byte — Sale</title>
+  <meta name="description" content="View Clutter Byte estate sale photos, schedule, and sale details."/>
   <meta name="theme-color" content="#1c1c1a"/>
-  <meta property="og:title" content="Clutter Byte — Temecula"/>
-  <meta property="og:description" content="View Temecula estate sale photos, schedule, and sale details from Clutter Byte."/>
+  <meta property="og:title" content="Clutter Byte — Sale"/>
+  <meta property="og:description" content="View Clutter Byte estate sale photos, schedule, and sale details."/>
   <meta property="og:type" content="article"/>
-  <meta property="og:url" content="https://clutterbyte.com/temecula/"/>
+  <meta property="og:url" content="https://clutterbyte.com/sale/"/>
   <meta property="og:image" content="https://clutterbyte.com/hemet-pics/photo1.jpg"/>
   <meta name="twitter:card" content="summary_large_image"/>
-  <link rel="canonical" href="https://clutterbyte.com/temecula/"/>
-  <link rel="alternate" hreflang="es" href="https://clutterbyte.com/temecula-es/"/>
+  <link rel="canonical" href="https://clutterbyte.com/sale/"/>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
   <link rel="manifest" href="/site.webmanifest"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -23,11 +22,12 @@
 <body>
 
   <header class="cb-header">
-    <a href="/home" class="logo">
+    <a href="/home" class="logo" id="sale-home-link">
       <span class="logo-icon"></span>
       <span class="logo-text">Clutter Byte</span>
     </a>
     <div class="header-right">
+      <a href="/home-es" class="admin-link" id="sale-lang-link">ES</a>
       <button class="header-contact-btn" id="header-contact-btn">Contact ↗</button>
     </div>
   </header>
@@ -43,20 +43,18 @@
   <div class="phone-backdrop" id="phone-backdrop"></div>
 
   <main>
-
     <div class="page-header">
-      <a href="/home" class="btn back">← Back</a>
-      <h2 class="page-title">Temecula</h2>
+      <a href="/home" class="btn back" id="sale-back-link">← Home</a>
+      <h2 class="page-title">Sale</h2>
       <p class="page-meta" id="photo-count"></p>
     </div>
 
     <section class="carousel-section" id="carousel-section"></section>
-
   </main>
 
   <footer class="cb-footer">
     <span>© Clutter Byte</span>
-    <a href="/home" class="footer-link">← Home</a>
+    <a href="/home" class="footer-link" id="sale-footer-link">← Home</a>
   </footer>
 
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
@@ -69,7 +67,31 @@
     <span class="lb-hint">esc · ← → to navigate</span>
   </div>
 
-  <script>var LOCATION = 'temecula';</script>
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    var LOCATION = params.get('city') || 'hemet';
+    var LANG = params.get('lang') === 'es' ? 'es' : 'en';
+    if (LANG === 'es') {
+      document.documentElement.lang = 'es';
+      document.getElementById('sale-home-link').href = '/home-es';
+      document.getElementById('sale-back-link').href = '/home-es';
+      document.getElementById('sale-back-link').textContent = '← Inicio';
+      document.getElementById('sale-footer-link').href = '/home-es';
+      document.getElementById('sale-footer-link').textContent = '← Inicio';
+      document.getElementById('sale-lang-link').href = '/sale/?city=' + encodeURIComponent(LOCATION);
+      document.getElementById('sale-lang-link').textContent = 'EN';
+      document.getElementById('header-contact-btn').textContent = 'Contacto ↗';
+      document.querySelector('.phone-overlay-label').textContent = 'Escribe cuando quieras';
+      document.querySelector('.phone-overlay-sub').textContent = '¿Organizando una venta de garaje o bienes? Podemos publicarla aquí.';
+      document.getElementById('phone-overlay-close').textContent = 'Cerrar ✕';
+      document.getElementById('lb-close').textContent = 'Cerrar ✕';
+      document.getElementById('lb-prev').setAttribute('aria-label', 'Anterior');
+      document.getElementById('lb-next').setAttribute('aria-label', 'Siguiente');
+      document.querySelector('.lb-hint').textContent = 'esc · ← → para navegar';
+    } else {
+      document.getElementById('sale-lang-link').href = '/sale/?city=' + encodeURIComponent(LOCATION) + '&lang=es';
+    }
+  </script>
   <script src="../js/ed-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-cms.js"></script>

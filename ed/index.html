@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Clutter Byte — Dashboard</title>
+  <meta name="theme-color" content="#1c1c1a"/>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+  <link rel="manifest" href="/site.webmanifest"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="../css/theme.css"/>
+</head>
+<body class="admin-body ed-body simple-mode ed-mobile-view-cities ed-locked">
+
+  <header class="cb-header">
+    <a href="/home" class="logo">
+      <span class="logo-icon"></span>
+      <span class="logo-text">Clutter Byte</span>
+    </a>
+    <div class="header-right">
+      <a href="/home" class="admin-link">Site</a>
+      <a href="/home-es" class="admin-link">ES</a>
+    </div>
+  </header>
+
+  <main class="ed-app">
+    <section class="ed-command">
+      <div>
+        <p class="admin-kicker">Private tools</p>
+        <h1 class="admin-title">Dashboard</h1>
+      </div>
+      <div class="ed-command-actions">
+        <div class="ed-mode-tabs" aria-label="Editor mode">
+          <button class="ed-mode-btn active" id="mode-simple" type="button">Simple</button>
+          <button class="ed-mode-btn" id="mode-advanced" type="button">Advanced</button>
+        </div>
+        <span class="ed-save-state" id="ed-save-state">Autosaved</span>
+        <button class="btn-solid ed-advanced-only" id="download-package" type="button">Download package</button>
+      </div>
+    </section>
+
+    <section class="ed-card ed-auth" id="ed-auth-card" aria-labelledby="ed-auth-title">
+      <div>
+        <p class="admin-kicker">Cloud mode</p>
+        <h2 class="admin-panel-title" id="ed-auth-title">Dashboard Login</h2>
+        <p class="admin-panel-sub" id="ed-cloud-status">Checking Supabase config...</p>
+      </div>
+      <form class="ed-login-form" id="ed-login-form">
+        <input class="admin-input" id="ed-login-email" type="email" autocomplete="username" placeholder="Email" aria-label="Email"/>
+        <input class="admin-input" id="ed-login-password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password"/>
+        <button class="btn-solid" id="ed-login-submit" type="submit">Log in</button>
+      </form>
+      <div class="ed-cloud-actions">
+        <button class="admin-row-action" id="ed-sync-now" type="button">Sync now</button>
+        <button class="admin-row-action" id="ed-sign-out" type="button">Sign out</button>
+      </div>
+    </section>
+
+    <nav class="ed-mobile-nav" aria-label="Editor sections">
+      <button class="ed-mobile-tab active" data-mobile-view="cities" type="button">Cities</button>
+      <button class="ed-mobile-tab" data-mobile-view="photos" type="button">Photos</button>
+      <button class="ed-mobile-tab" data-mobile-view="publish" type="button">Publish</button>
+      <button class="ed-mobile-tab" data-mobile-view="settings" type="button">Settings</button>
+      <button class="ed-mobile-tab" data-mobile-view="preview" type="button">Preview</button>
+    </nav>
+
+    <section class="ed-metrics ed-private" id="ed-metrics" aria-label="Draft summary"></section>
+
+    <div class="ed-workspace ed-private">
+      <aside class="ed-card ed-rail" aria-labelledby="cities-title" data-ed-pane="cities">
+        <div class="ed-card-head">
+          <div>
+            <h2 class="admin-panel-title" id="cities-title">Cities</h2>
+            <p class="admin-panel-sub">Shared EN + ES</p>
+          </div>
+          <button class="admin-icon-btn" id="city-add" type="button" aria-label="Add city">+</button>
+        </div>
+        <div class="ed-city-list" id="city-list"></div>
+      </aside>
+
+      <section class="ed-card ed-main" aria-labelledby="editor-title">
+        <div class="ed-card-head ed-card-head-wrap">
+          <div>
+            <h2 class="admin-panel-title" id="editor-title">Sale</h2>
+            <p class="admin-panel-sub" id="city-route-label">/city and /city-es</p>
+          </div>
+          <div class="ed-inline-actions">
+            <a class="admin-link" id="city-open-en" href="/home">EN</a>
+            <a class="admin-link" id="city-open-es" href="/home-es">ES</a>
+            <button class="admin-row-action" id="city-duplicate" type="button">Duplicate</button>
+            <button class="admin-row-action admin-danger-text" id="city-delete" type="button">Delete</button>
+          </div>
+        </div>
+
+        <div class="ed-section ed-city-fields" data-ed-pane="cities">
+          <div class="ed-form-grid">
+            <label class="admin-field">
+              <span class="admin-label">City name</span>
+              <input class="admin-input ed-input-big" id="city-name" type="text" autocomplete="off"/>
+            </label>
+            <label class="admin-field">
+              <span class="admin-label">URL slug</span>
+              <input class="admin-input" id="city-slug" type="text" autocomplete="off"/>
+            </label>
+            <label class="admin-field">
+              <span class="admin-label">Sale status</span>
+              <select class="admin-select" id="city-status">
+                <option value="live">Live</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="draft">Draft</option>
+                <option value="done">Done</option>
+              </select>
+            </label>
+            <label class="admin-field ed-toggle-field">
+              <span class="admin-label">Show on home</span>
+              <input id="city-active" type="checkbox"/>
+              <span class="ed-toggle-track" aria-hidden="true"></span>
+            </label>
+            <label class="admin-field">
+              <span class="admin-label">Visitor date</span>
+              <input class="admin-input" id="city-date" type="text" placeholder="Saturday, 8 AM-2 PM"/>
+            </label>
+            <label class="admin-field">
+              <span class="admin-label">Visitor note</span>
+              <input class="admin-input" id="city-hours" type="text" placeholder="Cash only, no holds"/>
+            </label>
+            <label class="admin-field">
+              <span class="admin-label">Full gallery link</span>
+              <input class="admin-input" id="city-drive" type="url" placeholder="Optional"/>
+            </label>
+            <label class="admin-field">
+              <span class="admin-label">Link card image</span>
+              <input class="admin-input" id="city-cta" type="text" placeholder="/city-pics/blurry.jpg"/>
+            </label>
+            <label class="admin-field ed-wide">
+              <span class="admin-label">Private address</span>
+              <input class="admin-input" id="city-address" type="text" placeholder="Kept private until reveal"/>
+            </label>
+            <label class="admin-field ed-toggle-field">
+              <span class="admin-label">Reveal address</span>
+              <input id="city-show-address" type="checkbox"/>
+              <span class="ed-toggle-track" aria-hidden="true"></span>
+            </label>
+            <label class="admin-field">
+              <span class="admin-label">Reveal time</span>
+              <input class="admin-input" id="city-address-reveal" type="datetime-local"/>
+            </label>
+            <details class="ed-fieldset ed-wide">
+              <summary>Schedule and visitor actions</summary>
+              <div class="ed-form-grid ed-nested-grid">
+                <label class="admin-field">
+                  <span class="admin-label">Calendar start</span>
+                  <input class="admin-input" id="city-calendar-start" type="datetime-local"/>
+                </label>
+                <label class="admin-field">
+                  <span class="admin-label">Calendar end</span>
+                  <input class="admin-input" id="city-calendar-end" type="datetime-local"/>
+                </label>
+              </div>
+            </details>
+            <details class="ed-fieldset ed-wide">
+              <summary>Final link card</summary>
+              <div class="ed-form-grid ed-nested-grid">
+                <label class="admin-field">
+                  <span class="admin-label">Photo count text</span>
+                  <input class="admin-input" id="city-cta-count" type="text" placeholder="100+"/>
+                </label>
+                <label class="admin-field">
+                  <span class="admin-label">English label</span>
+                  <input class="admin-input" id="city-cta-label-en" type="text" placeholder="more photos on Google Drive"/>
+                </label>
+                <label class="admin-field">
+                  <span class="admin-label">Spanish label</span>
+                  <input class="admin-input" id="city-cta-label-es" type="text" placeholder="más fotos en Google Drive"/>
+                </label>
+                <label class="admin-field">
+                  <span class="admin-label">English button</span>
+                  <input class="admin-input" id="city-cta-button-en" type="text" placeholder="View Full Gallery ↗"/>
+                </label>
+                <label class="admin-field">
+                  <span class="admin-label">Spanish button</span>
+                  <input class="admin-input" id="city-cta-button-es" type="text" placeholder="Ver Galería Completa ↗"/>
+                </label>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="ed-section ed-photo-tools ed-photo-panel" data-ed-pane="photos">
+          <label class="ed-dropzone" id="photo-dropzone" for="photo-upload">
+            <span>Drop photos</span>
+            <strong>Upload images</strong>
+            <input id="photo-upload" type="file" accept="image/*" multiple/>
+          </label>
+          <div class="ed-path-tools">
+            <div class="admin-inline">
+              <input class="admin-input" id="photo-path" type="text" placeholder="/city-pics/photo1.jpg"/>
+              <button class="admin-icon-btn" id="photo-add-path" type="button" aria-label="Add photo path">+</button>
+            </div>
+            <div class="ed-inline-actions">
+              <button class="admin-row-action" id="photo-sort-name" type="button">Sort A-Z</button>
+              <button class="admin-row-action" id="photo-renumber" type="button">Renumber</button>
+              <button class="admin-row-action" id="photo-clean-alt" type="button">Clean alt</button>
+              <button class="admin-row-action" id="photo-clear" type="button">Clear</button>
+            </div>
+          </div>
+          <input id="photo-replace-input" type="file" accept="image/*" hidden/>
+        </div>
+
+        <div class="ed-photo-head ed-photo-panel" data-ed-pane="photos">
+          <div>
+            <h2 class="admin-panel-title">Photos</h2>
+            <p class="admin-panel-sub" id="photo-count-label">0 photos</p>
+          </div>
+          <span class="ed-chip" id="cover-label">No cover</span>
+        </div>
+        <div class="ed-progress" id="upload-progress" aria-live="polite">
+          <span id="upload-progress-label">Ready</span>
+          <div><i id="upload-progress-bar"></i></div>
+        </div>
+        <div class="ed-photo-list ed-photo-panel" id="photo-list" data-ed-pane="photos"></div>
+      </section>
+
+      <aside class="ed-side">
+        <section class="ed-card ed-publish-card" data-ed-pane="publish">
+          <div class="ed-card-head">
+            <h2 class="admin-panel-title">Publish</h2>
+          </div>
+          <div class="ed-side-body">
+            <div class="ed-checks" id="publish-checks"></div>
+            <div class="ed-action-grid">
+              <button class="btn-solid" id="publish-city" type="button">Publish city</button>
+              <button class="btn-solid" id="run-checks" type="button">Run checks</button>
+              <button class="btn-solid" id="copy-preview-link" type="button">Copy preview</button>
+              <button class="btn-solid" id="text-preview-link" type="button">Text preview</button>
+              <button class="btn-solid" id="download-flyer" type="button">Flyer</button>
+              <button class="btn-solid ed-advanced-only" id="copy-photos-js" type="button">Copy photos.js</button>
+              <button class="btn-solid ed-advanced-only" id="download-photos-js" type="button">Download photos.js</button>
+              <button class="btn-solid ed-advanced-only" id="download-en-page" type="button">EN page</button>
+              <button class="btn-solid ed-advanced-only" id="download-es-page" type="button">ES page</button>
+              <button class="btn-solid ed-advanced-only" id="download-manifest" type="button">Manifest</button>
+              <button class="btn-solid admin-danger-btn ed-advanced-only" id="reset-editor" type="button">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="ed-card ed-preview-card" data-ed-pane="preview">
+          <div class="ed-card-head">
+            <h2 class="admin-panel-title">Preview</h2>
+            <div class="ed-inline-actions">
+              <button class="admin-row-action" id="preview-en" type="button">EN</button>
+              <button class="admin-row-action" id="preview-es" type="button">ES</button>
+            </div>
+          </div>
+          <div class="ed-preview" id="ed-preview"></div>
+        </section>
+
+        <section class="ed-card ed-history-card" data-ed-pane="publish">
+          <div class="ed-card-head">
+            <h2 class="admin-panel-title">History</h2>
+          </div>
+          <div class="ed-side-body">
+            <div class="ed-action-grid">
+              <button class="btn-solid" id="undo-last" type="button">Undo</button>
+              <button class="btn-solid" id="make-snapshot" type="button">Snapshot</button>
+            </div>
+            <div class="ed-history-list" id="history-list"></div>
+          </div>
+        </section>
+
+        <section class="ed-card ed-advanced-card ed-advanced-only">
+          <div class="ed-card-head">
+            <h2 class="admin-panel-title">Next Paths</h2>
+          </div>
+          <div class="ed-side-body">
+            <div class="ed-mini-grid">
+              <label class="admin-field">
+                <span class="admin-label">Count</span>
+                <input class="admin-input" id="snippet-count" type="number" min="1" max="80" value="6"/>
+              </label>
+              <label class="admin-field">
+                <span class="admin-label">Type</span>
+                <select class="admin-select" id="snippet-ext">
+                  <option value=".jpg">.jpg</option>
+                  <option value=".jpeg">.jpeg</option>
+                  <option value=".png">.png</option>
+                  <option value=".webp">.webp</option>
+                </select>
+              </label>
+            </div>
+            <code class="admin-code ed-code-small" id="snippet-output"></code>
+            <button class="btn-solid" id="copy-snippet" type="button">Copy paths</button>
+          </div>
+        </section>
+
+        <section class="ed-card ed-settings-card" data-ed-pane="settings">
+          <details class="ed-details" open>
+            <summary>Site Defaults</summary>
+            <div class="ed-side-body">
+              <label class="admin-field">
+                <span class="admin-label">Text number</span>
+                <input class="admin-input" id="setting-phone" type="text"/>
+              </label>
+              <label class="admin-field">
+                <span class="admin-label">SMS link</span>
+                <input class="admin-input" id="setting-sms" type="text"/>
+              </label>
+              <label class="admin-field">
+                <span class="admin-label">Contact EN</span>
+                <input class="admin-input" id="setting-contact-en" type="text"/>
+              </label>
+              <label class="admin-field">
+                <span class="admin-label">Contact ES</span>
+                <input class="admin-input" id="setting-contact-es" type="text"/>
+              </label>
+            </div>
+          </details>
+        </section>
+
+        <section class="ed-card ed-advanced-card ed-advanced-only">
+          <details class="ed-details">
+            <summary>Generated photos.js</summary>
+            <code class="admin-code ed-code" id="photos-output"></code>
+          </details>
+        </section>
+
+        <section class="ed-card ed-settings-card" data-ed-pane="settings">
+          <details class="ed-details">
+            <summary>Notes</summary>
+            <textarea class="admin-textarea ed-notes" id="editor-notes" spellcheck="true"></textarea>
+          </details>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="cb-footer">
+    <span>© Clutter Byte</span>
+    <a href="/home" class="footer-link">← Site</a>
+  </footer>
+
+  <script src="../js/ed-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-cms.js"></script>
+  <script src="../js/photos.js"></script>
+  <script src="../js/admin.js"></script>
+
+</body>
+</html>

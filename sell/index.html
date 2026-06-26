@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clutter Byte — Temecula</title>
-  <meta name="description" content="View Temecula estate sale photos, schedule, and sale details from Clutter Byte."/>
+  <title>Clutter Byte — List Your Sale</title>
+  <meta name="description" content="Text Clutter Byte to list an estate sale, garage sale, or moving sale in Inland Empire."/>
+  <meta name="robots" content="index,follow"/>
   <meta name="theme-color" content="#1c1c1a"/>
-  <meta property="og:title" content="Clutter Byte — Temecula"/>
-  <meta property="og:description" content="View Temecula estate sale photos, schedule, and sale details from Clutter Byte."/>
-  <meta property="og:type" content="article"/>
-  <meta property="og:url" content="https://clutterbyte.com/temecula/"/>
+  <meta property="og:title" content="Clutter Byte — List Your Sale"/>
+  <meta property="og:description" content="Text Clutter Byte to list an estate sale, garage sale, or moving sale in Inland Empire."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://clutterbyte.com/sell/"/>
   <meta property="og:image" content="https://clutterbyte.com/hemet-pics/photo1.jpg"/>
   <meta name="twitter:card" content="summary_large_image"/>
-  <link rel="canonical" href="https://clutterbyte.com/temecula/"/>
-  <link rel="alternate" hreflang="es" href="https://clutterbyte.com/temecula-es/"/>
+  <link rel="canonical" href="https://clutterbyte.com/sell/"/>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
   <link rel="manifest" href="/site.webmanifest"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -21,13 +21,13 @@
   <link rel="stylesheet" href="../css/theme.css"/>
 </head>
 <body>
-
   <header class="cb-header">
     <a href="/home" class="logo">
       <span class="logo-icon"></span>
       <span class="logo-text">Clutter Byte</span>
     </a>
     <div class="header-right">
+      <a href="/home" class="admin-link">Sales</a>
       <button class="header-contact-btn" id="header-contact-btn">Contact ↗</button>
     </div>
   </header>
@@ -36,45 +36,37 @@
     <div class="phone-overlay-left">
       <span class="phone-overlay-label">Text anytime</span>
       <a href="sms:+13233019200" class="phone-overlay-number">(323) 301-9200</a>
-      <span class="phone-overlay-sub shine-text">Hosting a garage or estate sale? We can list it here for you.</span>
+      <span class="phone-overlay-sub shine-text">Send city, date, photos, and any notes.</span>
     </div>
     <button class="phone-overlay-close" id="phone-overlay-close">Close ✕</button>
   </div>
   <div class="phone-backdrop" id="phone-backdrop"></div>
 
-  <main>
-
-    <div class="page-header">
-      <a href="/home" class="btn back">← Back</a>
-      <h2 class="page-title">Temecula</h2>
-      <p class="page-meta" id="photo-count"></p>
-    </div>
-
-    <section class="carousel-section" id="carousel-section"></section>
-
+  <main class="seller-page">
+    <section class="seller-hero">
+      <p class="hero-eye">For sellers</p>
+      <h1 class="hero-title">List<br/><em>Your</em><br/>Sale</h1>
+      <p class="hero-sub">Text the basics and we can turn it into a clean, photo-first sale page.</p>
+      <a class="btn-solid seller-cta" href="sms:+13233019200?&body=Hi%20Clutter%20Byte%2C%20I%20want%20to%20list%20a%20sale.%20City%3A%20%20Date%2Fhours%3A%20%20Address%3A%20%20Photos%3A%20">Text sale details</a>
+    </section>
+    <section class="seller-checklist" aria-label="What to send">
+      <span>City</span>
+      <span>Date and hours</span>
+      <span>Address timing</span>
+      <span>Photos</span>
+      <span>Google Drive link</span>
+      <span>Special notes</span>
+    </section>
   </main>
 
   <footer class="cb-footer">
     <span>© Clutter Byte</span>
-    <a href="/home" class="footer-link">← Home</a>
+    <a href="/home" class="footer-link">← Sales</a>
   </footer>
 
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
-    <button class="lb-close" id="lb-close">Close ✕</button>
-    <div class="lb-nav">
-      <button class="lb-arrow" id="lb-prev" aria-label="Previous">&#8592;</button>
-      <button class="lb-arrow" id="lb-next" aria-label="Next">&#8594;</button>
-    </div>
-    <img class="lightbox-img" id="lb-img" src="" alt=""/>
-    <span class="lb-hint">esc · ← → to navigate</span>
-  </div>
-
-  <script>var LOCATION = 'temecula';</script>
   <script src="../js/ed-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-cms.js"></script>
-  <script src="../js/photos.js"></script>
   <script src="../js/main.js"></script>
-
 </body>
 </html>

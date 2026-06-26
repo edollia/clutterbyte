@@ -4,6 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Clutter Byte — Venta de Bienes</title>
+  <meta name="description" content="Encuentra ventas de garaje y bienes en Inland Empire con fotos, horarios y enlaces actualizados."/>
+  <meta name="theme-color" content="#1c1c1a"/>
+  <meta property="og:title" content="Clutter Byte — Ventas de garaje y bienes"/>
+  <meta property="og:description" content="Encuentra ventas de garaje y bienes en Inland Empire con fotos, horarios y enlaces actualizados."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://clutterbyte.com/home-es/"/>
+  <meta property="og:image" content="https://clutterbyte.com/hemet-pics/photo1.jpg"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <link rel="canonical" href="https://clutterbyte.com/home-es/"/>
+  <link rel="alternate" hreflang="en" href="https://clutterbyte.com/home/"/>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+  <link rel="manifest" href="/site.webmanifest"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link rel="stylesheet" href="../css/theme.css"/>
@@ -22,8 +34,8 @@
 
   <div class="phone-overlay" id="phone-overlay" role="dialog" aria-label="Contacto">
     <div class="phone-overlay-left">
-      <span class="phone-overlay-label">Llama o escribe cuando quieras</span>
-      <a href="tel:+13233019200" class="phone-overlay-number">(323) 301-9200</a>
+      <span class="phone-overlay-label">Escribe cuando quieras</span>
+      <a href="sms:+13233019200" class="phone-overlay-number">(323) 301-9200</a>
       <span class="phone-overlay-sub shine-text">¿Organizando una venta de garaje o bienes? Podemos publicarla aquí.</span>
     </div>
     <button class="phone-overlay-close" id="phone-overlay-close">Cerrar ✕</button>
@@ -72,7 +84,7 @@
 
     <section class="locations-section">
       <p class="section-label">Explorar por ubicación</p>
-      <div class="locations-grid">
+      <div class="locations-grid" id="locations-grid">
         <a href="/temecula-es" class="location-card">
           <span class="loc-arrow" aria-hidden="true">↗</span>
           <span class="loc-name">Temecula</span>
@@ -96,9 +108,14 @@
 
   <footer class="cb-footer">
     <span>© Clutter Byte</span>
+    <a href="/sell" class="footer-link">Publicar venta</a>
     <a href="/home" class="footer-lang-switch">English →</a>
   </footer>
 
+  <script src="../js/ed-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-cms.js"></script>
+  <script src="../js/photos.js"></script>
   <script src="../js/main.js"></script>
 
 </body>

@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /ed/
+Allow: /
+
+Sitemap: https://clutterbyte.com/sitemap.xml

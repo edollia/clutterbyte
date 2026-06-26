@@ -1,0 +1,19 @@
+.DS_Store
+.env
+.env.*
+*.log
+node_modules/
+dist/
+build/
+.vercel/
+.netlify/
+
+# Keep database scaffolds out of the public GitHub Pages site.
+DO_NOT_UPLOAD_TO_GITHUB/
+supabase/
+
+# Local-only credentials and exports.
+*.pem
+*.key
+*.p12
+*.mobileprovision
