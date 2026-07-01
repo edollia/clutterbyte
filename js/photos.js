@@ -3,7 +3,7 @@
 //  ─────────────────────
 //  STATIC FALLBACK PHOTOS:
 //  The /ed dashboard is the normal way to upload, replace, delete, and order
-//  the 10 sale slots. File names do not matter there.
+//  the 20 sale slots. File names do not matter there.
 //
 //  Edit this file only when you need a no-cloud fallback for GitHub Pages.
 //

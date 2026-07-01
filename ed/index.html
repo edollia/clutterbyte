@@ -10,7 +10,7 @@
   <link rel="manifest" href="/site.webmanifest"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link rel="stylesheet" href="/css/theme.css?v=20260701-auth-restore"/>
+  <link rel="stylesheet" href="/css/theme.css?v=20260701-dashboard-polish"/>
   <style>.ed-locked .ed-private,.ed-locked .ed-mobile-nav{display:none}</style>
 </head>
 <body class="admin-body ed-body simple-mode ed-mobile-view-cities ed-locked">
@@ -97,15 +97,15 @@
 
         <div class="ed-section ed-city-fields" data-ed-pane="cities">
           <div class="ed-form-grid">
-            <label class="admin-field">
+            <label class="admin-field ed-field-name">
               <span class="admin-label">Sale city</span>
               <input class="admin-input ed-input-big" id="city-name" type="text" autocomplete="off"/>
             </label>
-            <label class="admin-field">
+            <label class="admin-field ed-field-slug">
               <span class="admin-label">URL slug</span>
               <input class="admin-input" id="city-slug" type="text" autocomplete="off"/>
             </label>
-            <label class="admin-field">
+            <label class="admin-field ed-field-status">
               <span class="admin-label">Sale status</span>
               <select class="admin-select" id="city-status">
                 <option value="live">Live</option>
@@ -114,20 +114,20 @@
                 <option value="done">Done</option>
               </select>
             </label>
-            <label class="admin-field ed-toggle-field">
+            <label class="admin-field ed-toggle-field ed-field-active">
               <span class="admin-label">Show on home</span>
               <input id="city-active" type="checkbox"/>
               <span class="ed-toggle-track" aria-hidden="true"></span>
             </label>
-            <label class="admin-field">
+            <label class="admin-field ed-field-date">
               <span class="admin-label">Visitor date</span>
               <input class="admin-input" id="city-date" type="text" placeholder="Saturday, 8 AM-2 PM"/>
             </label>
-            <label class="admin-field">
+            <label class="admin-field ed-field-hours">
               <span class="admin-label">Visitor note</span>
               <input class="admin-input" id="city-hours" type="text" placeholder="Cash only, no holds"/>
             </label>
-            <label class="admin-field">
+            <label class="admin-field ed-field-drive">
               <span class="admin-label">Full gallery link</span>
               <input class="admin-input" id="city-drive" type="url" placeholder="Optional"/>
             </label>
@@ -191,7 +191,7 @@
 
         <div class="ed-section ed-photo-tools ed-photo-panel" data-ed-pane="photos">
           <label class="ed-dropzone" id="photo-dropzone" for="photo-upload">
-            <span>Up to 10 photos</span>
+            <span>Up to 20 photos</span>
             <strong>Upload from this device</strong>
             <em>Tap, drag to slots, or replace any slot.</em>
             <input id="photo-upload" type="file" accept="image/*,.heic,.heif" multiple/>
@@ -323,11 +323,11 @@
     <a href="/home" class="footer-link">← Site</a>
   </footer>
 
-  <script src="/js/ed-config.js?v=20260701-auth-restore"></script>
+  <script src="/js/ed-config.js?v=20260701-dashboard-polish"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabase-cms.js?v=20260701-auth-restore"></script>
-  <script src="/js/photos.js?v=20260701-auth-restore"></script>
-  <script src="/js/admin.js?v=20260701-auth-restore"></script>
+  <script src="/js/supabase-cms.js?v=20260701-dashboard-polish"></script>
+  <script src="/js/photos.js?v=20260701-dashboard-polish"></script>
+  <script src="/js/admin.js?v=20260701-dashboard-polish"></script>
 
 </body>
 </html>

@@ -30,6 +30,8 @@ function absoluteUrl(path) {
 }
 
 var STATIC_CITY_ROUTES = { hemet: true, temecula: true };
+var LIVE_DATA_TIMEOUT_MS = 15000;
+var IMAGE_READY_TIMEOUT_MS = 18000;
 
 // ── CONTACT OVERLAY ───────────────────────────────────────────────────────
 (function () {
@@ -70,10 +72,20 @@ window.addEventListener('DOMContentLoaded', function () {
 
 function initSite() {
   var lang = (typeof LANG !== 'undefined' && LANG === 'es') ? 'es' : 'en';
+  var hasSalePage = typeof LOCATION !== 'undefined';
+  var liveConfigured = liveDataConfigured();
+  var waitsForLiveCity = hasSalePage && liveConfigured && window.location.pathname.indexOf('/sale') === 0;
   renderMobileTextCta(null, lang);
-  renderSite(null, lang);
+  if (waitsForLiveCity) {
+    showCityLoading(document.getElementById('carousel-section'), { name: titleFromSlug(LOCATION) }, lang, 0, 0);
+  } else {
+    renderSite(null, lang);
+  }
   loadLiveData().then(function (liveData) {
-    if (!liveData) return;
+    if (!liveData) {
+      if (waitsForLiveCity) renderSite(null, lang);
+      return;
+    }
     if (liveData.settings) applyContactSettings(liveData.settings, lang);
     renderMobileTextCta(liveData.settings || null, lang);
     renderSite(liveData, lang);
@@ -93,12 +105,38 @@ function renderSite(liveData, lang) {
 }
 
 async function loadLiveData() {
-  if (!window.CBCMS || !window.CBCMS.isConfigured || !window.CBCMS.isConfigured()) return null;
+  if (!liveDataConfigured()) return null;
   try {
-    return await window.CBCMS.loadPublicData();
+    return await withSiteTimeout(window.CBCMS.loadPublicData(), LIVE_DATA_TIMEOUT_MS);
   } catch (e) {
     return null;
   }
+}
+
+function liveDataConfigured() {
+  return !!(window.CBCMS && window.CBCMS.isConfigured && window.CBCMS.isConfigured());
+}
+
+function withSiteTimeout(promise, ms) {
+  return new Promise(function (resolve, reject) {
+    var done = false;
+    var timer = window.setTimeout(function () {
+      if (done) return;
+      done = true;
+      reject(new Error('timeout'));
+    }, ms);
+    Promise.resolve(promise).then(function (value) {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timer);
+      resolve(value);
+    }).catch(function (error) {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timer);
+      reject(error);
+    });
+  });
 }
 
 function citySource(key, liveData) {
@@ -225,37 +263,104 @@ function initPage(photos, driveLink, lang, ctaBg, meta) {
 
   if (countEl && !(meta && (meta.saleDate || meta.hours))) countEl.style.display = 'none';
 
-  if (section) section.innerHTML =
-    '<div class="carousel-loading" id="carousel-loading">' +
-      '<div class="carousel-loading-dot"></div>' +
-      '<div class="carousel-loading-dot"></div>' +
-      '<div class="carousel-loading-dot"></div>' +
-    '</div>';
+  showCityLoading(section, meta, lang, 0, photos.length);
 
   var loaded = 0;
   var availablePhotos = [];
   photos.forEach(function (src, index) {
-    var img = new Image();
-    img.onload = function () {
-      availablePhotos[index] = src;
-      markLoaded();
-    };
-    img.onerror = markLoaded;
-    function markLoaded() {
+    preloadGalleryPhoto(src).then(function (ok) {
+      if (ok) availablePhotos[index] = src;
+    }).then(function () {
       loaded++;
+      updateCityLoading(loaded, photos.length, lang);
       if (loaded === photos.length) {
         if (renderToken !== _pageRenderToken) return;
-        var el = document.getElementById('carousel-loading');
-        if (el) el.remove();
         var readyPhotos = availablePhotos.filter(Boolean);
-        if (!readyPhotos.length) {
-          showComingSoon(section, countEl, lang);
-          return;
-        }
-        buildCarousel(section, readyPhotos, driveLink, lang, ctaBg, meta);
-        initLightbox();
+        finishCityLoading(function () {
+          if (renderToken !== _pageRenderToken) return;
+          if (!readyPhotos.length) {
+            showComingSoon(section, countEl, lang);
+            return;
+          }
+          buildCarousel(section, readyPhotos, driveLink, lang, ctaBg, meta);
+          initLightbox();
+        });
       }
+    });
+  });
+}
+
+function showCityLoading(section, meta, lang, loaded, total) {
+  if (!section) return;
+  var isEs = lang === 'es';
+  var name = loadingCityName(meta);
+  section.innerHTML =
+    '<div class="carousel-loading" id="carousel-loading" role="status" aria-live="polite">' +
+      '<div class="carousel-loading-panel">' +
+        '<span class="carousel-loading-kicker">' + (isEs ? 'Preparando galeria' : 'Preparing gallery') + '</span>' +
+        '<strong class="carousel-loading-title">' + escapeHTML(name) + '</strong>' +
+        '<span class="carousel-loading-copy" id="carousel-loading-copy"></span>' +
+        '<div class="carousel-loading-bar" aria-hidden="true"><i id="carousel-loading-bar"></i></div>' +
+        '<span class="carousel-loading-count" id="carousel-loading-count"></span>' +
+      '</div>' +
+    '</div>';
+  updateCityLoading(loaded || 0, total || 0, lang);
+}
+
+function updateCityLoading(loaded, total, lang) {
+  var isEs = lang === 'es';
+  var copy = document.getElementById('carousel-loading-copy');
+  var count = document.getElementById('carousel-loading-count');
+  var bar = document.getElementById('carousel-loading-bar');
+  var hasTotal = total > 0;
+  var percent = hasTotal ? Math.max(8, Math.min(100, Math.round((loaded / total) * 100))) : 18;
+  if (copy) copy.textContent = hasTotal
+    ? (isEs ? 'Cargando fotos de alta resolucion' : 'Loading high-res photos')
+    : (isEs ? 'Conectando con la venta' : 'Connecting to sale data');
+  if (count) count.textContent = hasTotal
+    ? loaded + ' / ' + total + (isEs ? ' fotos listas' : ' photos ready')
+    : (isEs ? 'Un momento' : 'One moment');
+  if (bar) bar.style.width = percent + '%';
+}
+
+function finishCityLoading(callback) {
+  var loader = document.getElementById('carousel-loading');
+  if (!loader) {
+    callback();
+    return;
+  }
+  loader.classList.add('is-leaving');
+  window.setTimeout(callback, 260);
+}
+
+function loadingCityName(meta) {
+  if (meta && meta.name) return meta.name;
+  return titleFromSlug(typeof LOCATION !== 'undefined' ? LOCATION : 'sale');
+}
+
+function preloadGalleryPhoto(src) {
+  return new Promise(function (resolve) {
+    var img = new Image();
+    var done = false;
+    var timer = window.setTimeout(function () {
+      finish(true);
+    }, IMAGE_READY_TIMEOUT_MS);
+
+    function finish(ok) {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timer);
+      resolve(ok);
     }
+
+    img.onload = function () {
+      if (img.decode) {
+        img.decode().then(function () { finish(true); }, function () { finish(true); });
+      } else {
+        finish(true);
+      }
+    };
+    img.onerror = function () { finish(false); };
     img.src = src;
   });
 }

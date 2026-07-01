@@ -5,7 +5,7 @@
   var LEGACY_KEY = 'cb-ed-editor-v2';
   var HISTORY_KEY = 'cb-ed-history-v1';
   var HISTORY_LIMIT = 40;
-  var PHOTO_LIMIT = 10;
+  var PHOTO_LIMIT = 20;
 
   var selectedCityId = '';
   var state = null;
@@ -1526,6 +1526,7 @@
     var next = isEs ? 'Siguiente' : 'Next';
     var hint = isEs ? 'esc / flechas para navegar' : 'esc / arrows to navigate';
     var vars = "var LOCATION = '" + city.slug + "';" + (isEs ? " var LANG = 'es';" : '');
+    var assetVersion = '?v=20260701-dashboard-polish';
 
     return '<!DOCTYPE html>\n' +
       '<html lang="' + (isEs ? 'es' : 'en') + '">\n<head>\n' +
@@ -1536,7 +1537,7 @@
       '  <title>' + escapeHTML(title) + '</title>\n' +
       '  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>\n' +
       '  <link rel="manifest" href="/site.webmanifest"/>\n' +
-      '  <link rel="stylesheet" href="../css/theme.css"/>\n' +
+      '  <link rel="stylesheet" href="../css/theme.css' + assetVersion + '"/>\n' +
       '</head>\n<body>\n\n' +
       '  <header class="cb-header">\n' +
       '    <a href="' + home + '" class="logo"><span class="logo-icon"></span><span class="logo-text">Clutter Byte</span></a>\n' +
@@ -1566,11 +1567,11 @@
       '    <img class="lightbox-img" id="lb-img" src="" alt=""/><span class="lb-hint">' + hint + '</span>\n' +
       '  </div>\n\n' +
       '  <script>' + vars + '</script>\n' +
-      '  <script src="../js/ed-config.js"></script>\n' +
+      '  <script src="../js/ed-config.js' + assetVersion + '"></script>\n' +
       '  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n' +
-      '  <script src="../js/supabase-cms.js"></script>\n' +
-      '  <script src="../js/photos.js"></script>\n' +
-      '  <script src="../js/main.js"></script>\n\n' +
+      '  <script src="../js/supabase-cms.js' + assetVersion + '"></script>\n' +
+      '  <script src="../js/photos.js' + assetVersion + '"></script>\n' +
+      '  <script src="../js/main.js' + assetVersion + '"></script>\n\n' +
       '</body>\n</html>\n';
   }
 

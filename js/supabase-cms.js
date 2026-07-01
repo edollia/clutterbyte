@@ -2,6 +2,7 @@
 
 (function () {
   var config = window.ED_SUPABASE_CONFIG || {};
+  var PHOTO_LIMIT = 20;
   var client = null;
 
   function isConfigured() {
@@ -417,14 +418,14 @@
 
   function photoSlot(photo, fallbackIndex) {
     var slot = parseInt(photo && photo.slot, 10);
-    if (slot >= 0 && slot < 10) return slot;
-    return Math.max(0, Math.min(9, fallbackIndex || 0));
+    if (slot >= 0 && slot < PHOTO_LIMIT) return slot;
+    return Math.max(0, Math.min(PHOTO_LIMIT - 1, fallbackIndex || 0));
   }
 
   function slotFromSort(sortOrder, fallbackIndex) {
     var order = parseInt(sortOrder, 10);
-    if (order > 0) return Math.max(0, Math.min(9, Math.round(order / 10) - 1));
-    return Math.max(0, Math.min(9, fallbackIndex || 0));
+    if (order > 0) return Math.max(0, Math.min(PHOTO_LIMIT - 1, Math.round(order / 10) - 1));
+    return Math.max(0, Math.min(PHOTO_LIMIT - 1, fallbackIndex || 0));
   }
 
   function titleFromSlug(slug) {
