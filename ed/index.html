@@ -62,9 +62,9 @@
     <nav class="ed-mobile-nav" aria-label="Editor sections" data-ed-gated hidden>
       <button class="ed-mobile-tab active" data-mobile-view="cities" type="button">Sales</button>
       <button class="ed-mobile-tab" data-mobile-view="photos" type="button">Photos</button>
-      <button class="ed-mobile-tab" data-mobile-view="publish" type="button">Publish</button>
+      <button class="ed-mobile-tab ed-advanced-only" data-mobile-view="publish" type="button">Publish</button>
       <button class="ed-mobile-tab ed-advanced-only" data-mobile-view="settings" type="button">Settings</button>
-      <button class="ed-mobile-tab" data-mobile-view="preview" type="button">Preview</button>
+      <button class="ed-mobile-tab ed-advanced-only" data-mobile-view="preview" type="button">Preview</button>
     </nav>
 
     <section class="ed-metrics ed-private" id="ed-metrics" aria-label="Draft summary" data-ed-gated hidden></section>
@@ -85,9 +85,9 @@
         <div class="ed-card-head ed-card-head-wrap">
           <div>
             <h2 class="admin-panel-title" id="editor-title">Sale</h2>
-            <p class="admin-panel-sub" id="city-route-label">/city and /city-es</p>
+            <p class="admin-panel-sub ed-advanced-only" id="city-route-label">/city and /city-es</p>
           </div>
-          <div class="ed-inline-actions">
+          <div class="ed-inline-actions ed-advanced-only">
             <a class="admin-link" id="city-open-en" href="/home">EN</a>
             <a class="admin-link" id="city-open-es" href="/home-es">ES</a>
             <button class="admin-row-action" id="city-duplicate" type="button">Duplicate</button>
@@ -211,6 +211,23 @@
           <input id="photo-replace-input" type="file" accept="image/*,.heic,.heif" hidden/>
         </div>
 
+        <div class="ed-section ed-publish-strip ed-photo-panel" data-ed-pane="photos">
+          <div class="ed-publish-row">
+            <button class="btn-solid" id="publish-city" type="button">Publish</button>
+            <button class="admin-row-action ed-advanced-only" id="run-checks" type="button">Run checks</button>
+            <button class="admin-row-action ed-advanced-only" id="copy-preview-link" type="button">Copy preview</button>
+            <button class="admin-row-action ed-advanced-only" id="text-preview-link" type="button">Text preview</button>
+            <button class="admin-row-action ed-advanced-only" id="download-flyer" type="button">Flyer</button>
+            <button class="admin-row-action ed-advanced-only" id="copy-photos-js" type="button">Copy photos.js</button>
+            <button class="admin-row-action ed-advanced-only" id="download-photos-js" type="button">Download photos.js</button>
+            <button class="admin-row-action ed-advanced-only" id="download-en-page" type="button">EN page</button>
+            <button class="admin-row-action ed-advanced-only" id="download-es-page" type="button">ES page</button>
+            <button class="admin-row-action ed-advanced-only" id="download-manifest" type="button">Manifest</button>
+            <button class="admin-row-action admin-danger-text ed-advanced-only" id="reset-editor" type="button">Reset</button>
+          </div>
+          <div class="ed-checks ed-advanced-only" id="publish-checks"></div>
+        </div>
+
         <div class="ed-photo-head ed-photo-panel" data-ed-pane="photos">
           <div>
             <h2 class="admin-panel-title">Photos</h2>
@@ -226,28 +243,6 @@
       </section>
 
       <aside class="ed-side">
-        <section class="ed-card ed-publish-card" data-ed-pane="publish">
-          <div class="ed-card-head">
-            <h2 class="admin-panel-title">Publish</h2>
-          </div>
-          <div class="ed-side-body">
-            <div class="ed-checks" id="publish-checks"></div>
-            <div class="ed-action-grid">
-              <button class="btn-solid" id="publish-city" type="button">Publish city</button>
-              <button class="btn-solid" id="run-checks" type="button">Run checks</button>
-              <button class="btn-solid ed-advanced-only" id="copy-preview-link" type="button">Copy preview</button>
-              <button class="btn-solid ed-advanced-only" id="text-preview-link" type="button">Text preview</button>
-              <button class="btn-solid ed-advanced-only" id="download-flyer" type="button">Flyer</button>
-              <button class="btn-solid ed-advanced-only" id="copy-photos-js" type="button">Copy photos.js</button>
-              <button class="btn-solid ed-advanced-only" id="download-photos-js" type="button">Download photos.js</button>
-              <button class="btn-solid ed-advanced-only" id="download-en-page" type="button">EN page</button>
-              <button class="btn-solid ed-advanced-only" id="download-es-page" type="button">ES page</button>
-              <button class="btn-solid ed-advanced-only" id="download-manifest" type="button">Manifest</button>
-              <button class="btn-solid admin-danger-btn ed-advanced-only" id="reset-editor" type="button">Reset</button>
-            </div>
-          </div>
-        </section>
-
         <section class="ed-card ed-preview-card" data-ed-pane="preview">
           <div class="ed-card-head">
             <h2 class="admin-panel-title">Preview</h2>

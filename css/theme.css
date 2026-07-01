@@ -1953,6 +1953,16 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
   color: var(--text);
   border-color: var(--danger);
 }
+.ed-publish-strip {
+  display: grid;
+  gap: 9px;
+}
+.ed-publish-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
 .ed-action-grid,
 .ed-mini-grid {
   display: grid;
@@ -1992,18 +2002,59 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 .simple-mode .ed-advanced-only {
   display: none !important;
 }
+.ed-cloud-ready.simple-mode .ed-auth {
+  display: none;
+}
+.simple-mode .ed-metrics {
+  display: none;
+}
 .simple-mode .ed-workspace {
-  grid-template-columns: 230px minmax(0, 1fr) 300px;
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: 10px;
 }
 .simple-mode .ed-command {
-  align-items: center;
+  justify-content: flex-end;
+  border-bottom: 0;
+  padding: 4px 0 8px;
+}
+.simple-mode .ed-command > div:first-child {
+  display: none;
+}
+.simple-mode .ed-side {
+  display: none !important;
+}
+.simple-mode .ed-main > .ed-card-head {
+  display: none;
+}
+.simple-mode .ed-card {
+  border-radius: 5px;
+}
+.simple-mode .ed-city-list,
+.simple-mode .ed-section,
+.simple-mode .ed-photo-head {
+  padding: 9px;
+}
+.simple-mode .ed-city-button {
+  min-height: 52px;
+  padding: 9px;
+}
+.simple-mode .ed-city-name {
+  font-size: 22px;
+}
+.simple-mode .ed-form-grid {
+  grid-template-columns: minmax(160px, 1fr) minmax(130px, 0.72fr) minmax(110px, 0.55fr);
+  gap: 8px;
+}
+.simple-mode .ed-toggle-field {
+  min-height: 34px;
 }
 .simple-mode .ed-photo-tools {
   grid-template-columns: 1fr;
 }
 .simple-mode .ed-photo-src,
 .simple-mode .photo-action-copy,
-.simple-mode .photo-action-top {
+.simple-mode .photo-action-top,
+.simple-mode .ed-photo-body small {
   display: none !important;
 }
 .simple-mode .ed-path-tools {
@@ -2013,7 +2064,7 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
   justify-content: center;
 }
 .simple-mode .ed-dropzone {
-  min-height: 132px;
+  min-height: 96px;
   align-items: center;
   text-align: center;
   font-size: 10px;
@@ -2026,6 +2077,49 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 }
 .simple-mode .ed-check {
   min-height: 36px;
+}
+.simple-mode .ed-publish-strip {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(212,184,150,0.035);
+}
+.simple-mode .ed-publish-row {
+  justify-content: flex-end;
+}
+.simple-mode .ed-publish-row .btn-solid {
+  min-width: 160px;
+}
+.simple-mode .ed-photo-list {
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 7px;
+  padding: 0 9px 9px;
+}
+.simple-mode .ed-photo-item,
+.simple-mode .ed-photo-item.empty,
+.simple-mode .ed-slot-empty {
+  min-height: 184px;
+}
+.simple-mode .ed-photo-body {
+  gap: 3px;
+  padding: 7px;
+}
+.simple-mode .ed-photo-body strong {
+  font-size: 10px;
+}
+.simple-mode .ed-photo-actions {
+  gap: 4px;
+  padding: 7px;
+}
+.simple-mode .ed-photo-actions .admin-row-action {
+  flex: 1 1 calc(50% - 4px);
+  min-height: 30px;
+  padding: 5px 6px;
+}
+.simple-mode .ed-slot-empty {
+  gap: 7px;
+}
+.simple-mode .ed-slot-empty strong {
+  font-size: 24px;
 }
 .ed-preview {
   padding: 12px;
@@ -2282,7 +2376,7 @@ body:not(.admin-body) .footer-lang-switch {
     -webkit-backdrop-filter: blur(14px);
   }
   .simple-mode .ed-mobile-nav {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .ed-mobile-tab {
     min-height: 48px;
@@ -2320,7 +2414,8 @@ body:not(.admin-body) .footer-lang-switch {
   .ed-mobile-view-photos .ed-city-fields,
   .ed-mobile-view-photos .ed-side,
   .ed-mobile-view-publish .ed-rail,
-  .ed-mobile-view-publish .ed-main,
+  .ed-mobile-view-publish .ed-city-fields,
+  .ed-mobile-view-publish .ed-photo-panel:not(.ed-publish-strip),
   .ed-mobile-view-publish .ed-settings-card,
   .ed-mobile-view-publish .ed-preview-card,
   .ed-mobile-view-settings .ed-rail,
@@ -2339,6 +2434,9 @@ body:not(.admin-body) .footer-lang-switch {
   .ed-mobile-view-settings .ed-side,
   .ed-mobile-view-preview .ed-side {
     display: grid;
+  }
+  .ed-mobile-view-publish .ed-main {
+    display: block;
   }
 }
 
