@@ -70,14 +70,14 @@
 
     var locationsResult = await api
       .from('ed_public_locations')
-      .select('*')
+      .select('id,display_name,drive_link,cta_background,status,sale_date,hours,public_address,show_address,address_reveal_at,address_revealed,cover_src,sort_order,is_active,metadata')
       .order('sort_order', { ascending: true })
       .order('display_name', { ascending: true });
     if (locationsResult.error) throw locationsResult.error;
 
     var photosResult = await api
       .from('ed_photos')
-      .select('*')
+      .select('id,location_id,src,original_name,kind,storage_bucket,storage_path,alt_text,size_bytes,mime_type,sort_order,is_featured,is_active')
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true });
@@ -85,7 +85,7 @@
 
     var settingsResult = await api
       .from('ed_site_settings')
-      .select('*')
+      .select('key,value')
       .eq('key', 'public_contact')
       .maybeSingle();
     if (settingsResult.error) throw settingsResult.error;
@@ -118,6 +118,7 @@
     var photosResult = await api
       .from('ed_photos')
       .select('*')
+      .eq('is_active', true)
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true });
     if (photosResult.error) throw photosResult.error;
@@ -221,7 +222,11 @@
 
     if (!city.photos.length) return;
 
-    var rows = city.photos.map(function (photo, index) {
+    var photos = (city.photos || []).slice().sort(function (a, b) {
+      return photoSlot(a, 0) - photoSlot(b, 0);
+    });
+    var rows = photos.map(function (photo, index) {
+      var slot = photoSlot(photo, index);
       return {
         location_id: city.slug,
         src: photo.src,
@@ -232,11 +237,12 @@
         alt_text: photo.alt || '',
         size_bytes: photo.size || 0,
         mime_type: photo.mime || '',
-        sort_order: (index + 1) * 10,
+        sort_order: (slot + 1) * 10,
         is_featured: photo.id === city.coverId,
         is_active: photo.kind !== 'upload',
         metadata: {
           editorId: photo.id,
+          slot: slot,
           replacedAt: photo.replacedAt || ''
         }
       };
@@ -249,11 +255,11 @@
     var api = getClient();
     if (!api) throw new Error('Supabase config missing');
     var bucket = config.bucket || 'estate-sale-photos';
-    var path = city.slug + '/' + Date.now() + '-' + safeFileName(file.name || 'photo.jpg');
+    var path = city.slug + '/' + Date.now().toString(36) + '-' + randomToken() + uploadExtension(file);
     if (progress) progress(15, 'Preparing upload');
     var upload = await api.storage.from(bucket).upload(path, file, {
       upsert: true,
-      contentType: file.type || 'image/jpeg',
+      contentType: uploadContentType(file),
       cacheControl: '31536000'
     });
     if (upload.error) throw upload.error;
@@ -308,6 +314,7 @@
     var photosByCity = {};
     photoRows.forEach(function (row) {
       if (!photosByCity[row.location_id]) photosByCity[row.location_id] = [];
+      var photoIndex = photosByCity[row.location_id].length;
       photosByCity[row.location_id].push({
         id: row.id,
         src: row.src,
@@ -318,6 +325,7 @@
         alt: row.alt_text || '',
         size: row.size_bytes || 0,
         mime: row.mime_type || '',
+        slot: slotFromSort(row.sort_order, photoIndex),
         sortOrder: row.sort_order || 0,
         featured: !!row.is_featured
       });
@@ -370,16 +378,53 @@
     return result.data;
   }
 
-  function safeFileName(name) {
-    var clean = String(name || 'photo.jpg')
-      .toLowerCase()
-      .replace(/[^a-z0-9.]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return clean || 'photo.jpg';
+  function uploadExtension(file) {
+    var type = String(file && file.type || '').toLowerCase();
+    if (type.indexOf('png') >= 0) return '.png';
+    if (type.indexOf('webp') >= 0) return '.webp';
+    if (type.indexOf('gif') >= 0) return '.gif';
+    if (type.indexOf('heic') >= 0) return '.heic';
+    if (type.indexOf('heif') >= 0) return '.heif';
+    var match = String(file && file.name || '').match(/\.(jpe?g|png|webp|gif|heic|heif)$/i);
+    return match ? '.' + match[1].toLowerCase().replace('jpeg', 'jpg') : '.jpg';
+  }
+
+  function uploadContentType(file) {
+    var type = String(file && file.type || '').toLowerCase();
+    if (type) return type;
+    var ext = uploadExtension(file);
+    if (ext === '.png') return 'image/png';
+    if (ext === '.webp') return 'image/webp';
+    if (ext === '.gif') return 'image/gif';
+    if (ext === '.heic') return 'image/heic';
+    if (ext === '.heif') return 'image/heif';
+    return 'image/jpeg';
+  }
+
+  function randomToken() {
+    try {
+      var bytes = new Uint32Array(2);
+      window.crypto.getRandomValues(bytes);
+      return bytes[0].toString(36) + bytes[1].toString(36);
+    } catch (e) {
+      return Math.random().toString(36).slice(2, 12);
+    }
   }
 
   function fileName(path) {
     return String(path || '').split('/').filter(Boolean).pop() || 'photo.jpg';
+  }
+
+  function photoSlot(photo, fallbackIndex) {
+    var slot = parseInt(photo && photo.slot, 10);
+    if (slot >= 0 && slot < 10) return slot;
+    return Math.max(0, Math.min(9, fallbackIndex || 0));
+  }
+
+  function slotFromSort(sortOrder, fallbackIndex) {
+    var order = parseInt(sortOrder, 10);
+    if (order > 0) return Math.max(0, Math.min(9, Math.round(order / 10) - 1));
+    return Math.max(0, Math.min(9, fallbackIndex || 0));
   }
 
   function titleFromSlug(slug) {

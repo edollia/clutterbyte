@@ -15,6 +15,6 @@
 // (function() {
 //   var s = document.createElement('script');
 //   s.dataset.goatcounter = 'https://YOUR_SITE.goatcounter.com/count';
-//   s.src = '//gc.zgo.at/count.js'; s.async = true;
+//   s.src = 'https://gc.zgo.at/count.js'; s.async = true;
 //   document.head.appendChild(s);
 // })();

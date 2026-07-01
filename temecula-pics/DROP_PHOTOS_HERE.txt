@@ -1,3 +1,4 @@
-Drop Temecula photos here.
-Name them: photo1.jpg, photo2.jpg ... photo20.jpg
-Then uncomment the matching lines in js/photos.js
+Use /ed to upload Temecula photos into slots 1-10.
+File names do not matter in the dashboard.
+
+Only place files here if you are maintaining the static fallback manually.

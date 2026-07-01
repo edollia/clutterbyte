@@ -10,7 +10,7 @@
   <link rel="manifest" href="/site.webmanifest"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link rel="stylesheet" href="/css/theme.css?v=20260626-auth-timeout"/>
+  <link rel="stylesheet" href="/css/theme.css?v=20260701-slot-dashboard"/>
   <style>.ed-locked .ed-private,.ed-locked .ed-mobile-nav{display:none}</style>
 </head>
 <body class="admin-body ed-body simple-mode ed-mobile-view-cities ed-locked">
@@ -29,11 +29,11 @@
   <main class="ed-app">
     <section class="ed-command ed-private" data-ed-gated hidden>
       <div>
-        <p class="admin-kicker">Private tools</p>
-        <h1 class="admin-title">Dashboard</h1>
+        <p class="admin-kicker">Admin</p>
+        <h1 class="admin-title">Sales</h1>
       </div>
       <div class="ed-command-actions">
-        <div class="ed-mode-tabs" aria-label="Editor mode">
+        <div class="ed-mode-tabs ed-advanced-only" aria-label="Editor mode">
           <button class="ed-mode-btn active" id="mode-simple" type="button">Simple</button>
           <button class="ed-mode-btn" id="mode-advanced" type="button">Advanced</button>
         </div>
@@ -45,8 +45,8 @@
     <section class="ed-card ed-auth" id="ed-auth-card" aria-labelledby="ed-auth-title">
       <div>
         <p class="admin-kicker">Private access</p>
-        <h2 class="admin-panel-title" id="ed-auth-title">Dashboard Login</h2>
-        <p class="admin-panel-sub" id="ed-cloud-status">Enter your dashboard email and password.</p>
+        <h2 class="admin-panel-title" id="ed-auth-title">Admin Login</h2>
+        <p class="admin-panel-sub" id="ed-cloud-status">Log in, upload photos, publish.</p>
       </div>
       <form class="ed-login-form" id="ed-login-form">
         <input class="admin-input" id="ed-login-email" type="email" autocomplete="username" placeholder="Email" aria-label="Email"/>
@@ -60,10 +60,10 @@
     </section>
 
     <nav class="ed-mobile-nav" aria-label="Editor sections" data-ed-gated hidden>
-      <button class="ed-mobile-tab active" data-mobile-view="cities" type="button">Cities</button>
+      <button class="ed-mobile-tab active" data-mobile-view="cities" type="button">Sales</button>
       <button class="ed-mobile-tab" data-mobile-view="photos" type="button">Photos</button>
       <button class="ed-mobile-tab" data-mobile-view="publish" type="button">Publish</button>
-      <button class="ed-mobile-tab" data-mobile-view="settings" type="button">Settings</button>
+      <button class="ed-mobile-tab ed-advanced-only" data-mobile-view="settings" type="button">Settings</button>
       <button class="ed-mobile-tab" data-mobile-view="preview" type="button">Preview</button>
     </nav>
 
@@ -73,10 +73,10 @@
       <aside class="ed-card ed-rail" aria-labelledby="cities-title" data-ed-pane="cities">
         <div class="ed-card-head">
           <div>
-            <h2 class="admin-panel-title" id="cities-title">Cities</h2>
+            <h2 class="admin-panel-title" id="cities-title">Sales</h2>
             <p class="admin-panel-sub">Shared EN + ES</p>
           </div>
-          <button class="admin-icon-btn" id="city-add" type="button" aria-label="Add city">+</button>
+          <button class="admin-icon-btn" id="city-add" type="button" aria-label="Add sale">+</button>
         </div>
         <div class="ed-city-list" id="city-list"></div>
       </aside>
@@ -98,7 +98,7 @@
         <div class="ed-section ed-city-fields" data-ed-pane="cities">
           <div class="ed-form-grid">
             <label class="admin-field">
-              <span class="admin-label">City name</span>
+              <span class="admin-label">Sale city</span>
               <input class="admin-input ed-input-big" id="city-name" type="text" autocomplete="off"/>
             </label>
             <label class="admin-field">
@@ -131,24 +131,24 @@
               <span class="admin-label">Full gallery link</span>
               <input class="admin-input" id="city-drive" type="url" placeholder="Optional"/>
             </label>
-            <label class="admin-field">
+            <label class="admin-field ed-advanced-only">
               <span class="admin-label">Link card image</span>
               <input class="admin-input" id="city-cta" type="text" placeholder="/city-pics/blurry.jpg"/>
             </label>
-            <label class="admin-field ed-wide">
+            <label class="admin-field ed-wide ed-advanced-only">
               <span class="admin-label">Private address</span>
               <input class="admin-input" id="city-address" type="text" placeholder="Kept private until reveal"/>
             </label>
-            <label class="admin-field ed-toggle-field">
+            <label class="admin-field ed-toggle-field ed-advanced-only">
               <span class="admin-label">Reveal address</span>
               <input id="city-show-address" type="checkbox"/>
               <span class="ed-toggle-track" aria-hidden="true"></span>
             </label>
-            <label class="admin-field">
+            <label class="admin-field ed-advanced-only">
               <span class="admin-label">Reveal time</span>
               <input class="admin-input" id="city-address-reveal" type="datetime-local"/>
             </label>
-            <details class="ed-fieldset ed-wide">
+            <details class="ed-fieldset ed-wide ed-advanced-only">
               <summary>Schedule and visitor actions</summary>
               <div class="ed-form-grid ed-nested-grid">
                 <label class="admin-field">
@@ -161,7 +161,7 @@
                 </label>
               </div>
             </details>
-            <details class="ed-fieldset ed-wide">
+            <details class="ed-fieldset ed-wide ed-advanced-only">
               <summary>Final link card</summary>
               <div class="ed-form-grid ed-nested-grid">
                 <label class="admin-field">
@@ -191,23 +191,24 @@
 
         <div class="ed-section ed-photo-tools ed-photo-panel" data-ed-pane="photos">
           <label class="ed-dropzone" id="photo-dropzone" for="photo-upload">
-            <span>Drop photos</span>
-            <strong>Upload images</strong>
-            <input id="photo-upload" type="file" accept="image/*" multiple/>
+            <span>Up to 10 photos</span>
+            <strong>Upload from this device</strong>
+            <em>Tap, drag to slots, or replace any slot.</em>
+            <input id="photo-upload" type="file" accept="image/*,.heic,.heif" multiple/>
           </label>
           <div class="ed-path-tools">
-            <div class="admin-inline">
-              <input class="admin-input" id="photo-path" type="text" placeholder="/city-pics/photo1.jpg"/>
+            <div class="admin-inline ed-advanced-only">
+              <input class="admin-input" id="photo-path" type="text" placeholder="/city-pics/any-photo.jpg"/>
               <button class="admin-icon-btn" id="photo-add-path" type="button" aria-label="Add photo path">+</button>
             </div>
             <div class="ed-inline-actions">
-              <button class="admin-row-action" id="photo-sort-name" type="button">Sort A-Z</button>
-              <button class="admin-row-action" id="photo-renumber" type="button">Renumber</button>
-              <button class="admin-row-action" id="photo-clean-alt" type="button">Clean alt</button>
-              <button class="admin-row-action" id="photo-clear" type="button">Clear</button>
+              <button class="admin-row-action ed-advanced-only" id="photo-sort-name" type="button">Sort by name</button>
+              <button class="admin-row-action ed-advanced-only" id="photo-renumber" type="button">Compact slots</button>
+              <button class="admin-row-action ed-advanced-only" id="photo-clean-alt" type="button">Clean alt</button>
+              <button class="admin-row-action admin-danger-text" id="photo-clear" type="button">Clear photos</button>
             </div>
           </div>
-          <input id="photo-replace-input" type="file" accept="image/*" hidden/>
+          <input id="photo-replace-input" type="file" accept="image/*,.heic,.heif" hidden/>
         </div>
 
         <div class="ed-photo-head ed-photo-panel" data-ed-pane="photos">
@@ -234,9 +235,9 @@
             <div class="ed-action-grid">
               <button class="btn-solid" id="publish-city" type="button">Publish city</button>
               <button class="btn-solid" id="run-checks" type="button">Run checks</button>
-              <button class="btn-solid" id="copy-preview-link" type="button">Copy preview</button>
-              <button class="btn-solid" id="text-preview-link" type="button">Text preview</button>
-              <button class="btn-solid" id="download-flyer" type="button">Flyer</button>
+              <button class="btn-solid ed-advanced-only" id="copy-preview-link" type="button">Copy preview</button>
+              <button class="btn-solid ed-advanced-only" id="text-preview-link" type="button">Text preview</button>
+              <button class="btn-solid ed-advanced-only" id="download-flyer" type="button">Flyer</button>
               <button class="btn-solid ed-advanced-only" id="copy-photos-js" type="button">Copy photos.js</button>
               <button class="btn-solid ed-advanced-only" id="download-photos-js" type="button">Download photos.js</button>
               <button class="btn-solid ed-advanced-only" id="download-en-page" type="button">EN page</button>
@@ -258,7 +259,7 @@
           <div class="ed-preview" id="ed-preview"></div>
         </section>
 
-        <section class="ed-card ed-history-card" data-ed-pane="publish">
+        <section class="ed-card ed-history-card ed-advanced-only" data-ed-pane="publish">
           <div class="ed-card-head">
             <h2 class="admin-panel-title">History</h2>
           </div>
@@ -273,30 +274,15 @@
 
         <section class="ed-card ed-advanced-card ed-advanced-only">
           <div class="ed-card-head">
-            <h2 class="admin-panel-title">Next Paths</h2>
+            <h2 class="admin-panel-title">Slot Map</h2>
           </div>
           <div class="ed-side-body">
-            <div class="ed-mini-grid">
-              <label class="admin-field">
-                <span class="admin-label">Count</span>
-                <input class="admin-input" id="snippet-count" type="number" min="1" max="80" value="6"/>
-              </label>
-              <label class="admin-field">
-                <span class="admin-label">Type</span>
-                <select class="admin-select" id="snippet-ext">
-                  <option value=".jpg">.jpg</option>
-                  <option value=".jpeg">.jpeg</option>
-                  <option value=".png">.png</option>
-                  <option value=".webp">.webp</option>
-                </select>
-              </label>
-            </div>
             <code class="admin-code ed-code-small" id="snippet-output"></code>
-            <button class="btn-solid" id="copy-snippet" type="button">Copy paths</button>
+            <button class="btn-solid" id="copy-snippet" type="button">Copy slot map</button>
           </div>
         </section>
 
-        <section class="ed-card ed-settings-card" data-ed-pane="settings">
+        <section class="ed-card ed-settings-card ed-advanced-only" data-ed-pane="settings">
           <details class="ed-details" open>
             <summary>Site Defaults</summary>
             <div class="ed-side-body">
@@ -327,7 +313,7 @@
           </details>
         </section>
 
-        <section class="ed-card ed-settings-card" data-ed-pane="settings">
+        <section class="ed-card ed-settings-card ed-advanced-only" data-ed-pane="settings">
           <details class="ed-details">
             <summary>Notes</summary>
             <textarea class="admin-textarea ed-notes" id="editor-notes" spellcheck="true"></textarea>
@@ -342,11 +328,11 @@
     <a href="/home" class="footer-link">← Site</a>
   </footer>
 
-  <script src="/js/ed-config.js?v=20260626-auth-timeout"></script>
+  <script src="/js/ed-config.js?v=20260701-slot-dashboard"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabase-cms.js?v=20260626-auth-timeout"></script>
-  <script src="/js/photos.js?v=20260626-auth-timeout"></script>
-  <script src="/js/admin.js?v=20260626-auth-timeout"></script>
+  <script src="/js/supabase-cms.js?v=20260701-slot-dashboard"></script>
+  <script src="/js/photos.js?v=20260701-slot-dashboard"></script>
+  <script src="/js/admin.js?v=20260701-slot-dashboard"></script>
 
 </body>
 </html>

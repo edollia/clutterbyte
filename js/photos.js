@@ -1,11 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────
 //  CLUTTER BYTE — PHOTOS
 //  ─────────────────────
-//  HOW TO ADD PHOTOS:
-//  1. Drop photo into temecula-pics/ or hemet-pics/
-//     Name it: photo1.jpg, photo2.jpg … photo20.jpg
-//  2. Remove the // on the matching line below
-//  3. Upload to GitHub → live instantly
+//  STATIC FALLBACK PHOTOS:
+//  The /ed dashboard is the normal way to upload, replace, delete, and order
+//  the 10 sale slots. File names do not matter there.
+//
+//  Edit this file only when you need a no-cloud fallback for GitHub Pages.
 //
 //  DRIVE LINKS: paste the Google Drive folder URL for each location.
 //  Leave as empty string '' to hide the CTA card for that location.
@@ -24,16 +24,6 @@ var PHOTOS = {
     // '/temecula-pics/photo8.jpg',
     // '/temecula-pics/photo9.jpg',
     // '/temecula-pics/photo10.jpg',
-    // '/temecula-pics/photo11.jpg',
-    // '/temecula-pics/photo12.jpg',
-    // '/temecula-pics/photo13.jpg',
-    // '/temecula-pics/photo14.jpg',
-    // '/temecula-pics/photo15.jpg',
-    // '/temecula-pics/photo16.jpg',
-    // '/temecula-pics/photo17.jpg',
-    // '/temecula-pics/photo18.jpg',
-    // '/temecula-pics/photo19.jpg',
-    // '/temecula-pics/photo20.jpg',
   ],
 
   hemet: [
@@ -47,16 +37,6 @@ var PHOTOS = {
     // '/hemet-pics/photo8.jpg',
     // '/hemet-pics/photo9.jpg',
     // '/hemet-pics/photo10.jpg',
-    // '/hemet-pics/photo11.jpg',
-    // '/hemet-pics/photo12.jpg',
-    // '/hemet-pics/photo13.jpg',
-    // '/hemet-pics/photo14.jpg',
-    // '/hemet-pics/photo15.jpg',
-    // '/hemet-pics/photo16.jpg',
-    // '/hemet-pics/photo17.jpg',
-    // '/hemet-pics/photo18.jpg',
-    // '/hemet-pics/photo19.jpg',
-    // '/hemet-pics/photo20.jpg',
   ]
 
 };

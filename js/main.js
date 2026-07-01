@@ -29,6 +29,8 @@ function absoluteUrl(path) {
   return siteOrigin() + (String(path).charAt(0) === '/' ? path : '/' + path);
 }
 
+var STATIC_CITY_ROUTES = { hemet: true, temecula: true };
+
 // ── CONTACT OVERLAY ───────────────────────────────────────────────────────
 (function () {
   var btn      = document.getElementById('header-contact-btn');
@@ -66,11 +68,19 @@ window.addEventListener('DOMContentLoaded', function () {
   initSite();
 });
 
-async function initSite() {
-  var liveData = await loadLiveData();
+function initSite() {
   var lang = (typeof LANG !== 'undefined' && LANG === 'es') ? 'es' : 'en';
-  if (liveData && liveData.settings) applyContactSettings(liveData.settings, lang);
-  renderMobileTextCta(liveData && liveData.settings ? liveData.settings : null, lang);
+  renderMobileTextCta(null, lang);
+  renderSite(null, lang);
+  loadLiveData().then(function (liveData) {
+    if (!liveData) return;
+    if (liveData.settings) applyContactSettings(liveData.settings, lang);
+    renderMobileTextCta(liveData.settings || null, lang);
+    renderSite(liveData, lang);
+  });
+}
+
+function renderSite(liveData, lang) {
   if (typeof LOCATION === 'undefined') {
     if (document.querySelector('.seller-page')) return;
     initHomeLocations(liveData);
@@ -96,7 +106,7 @@ function citySource(key, liveData) {
     var city = liveData.cities.filter(function (item) { return item.slug === key || item.id === key; })[0];
     if (city) {
       return {
-        photos: city.photos.map(function (photo) { return photo.src; }),
+        photos: validPhotoList((city.photos || []).map(function (photo) { return photo.src; })),
         driveLink: city.driveLink || '',
         ctaBg: city.ctaBg || '',
         meta: city
@@ -142,9 +152,7 @@ function renderHomeCities(grid, cities, isEs, liveMode) {
     var key = city.slug || city.id;
     var photos = Array.isArray(city.photos) ? city.photos : [];
     var name = city.name || titleFromSlug(key);
-    var href = liveMode
-      ? '/sale/?city=' + encodeURIComponent(key) + (isEs ? '&lang=es' : '')
-      : '/' + key + (isEs ? '-es' : '');
+    var href = cityHref(key, isEs, liveMode);
     var count = photos.length;
     var status = city.saleDate || '';
     var sub = status || (count
@@ -156,6 +164,13 @@ function renderHomeCities(grid, cities, isEs, liveMode) {
       '<span class="loc-sub">' + escapeHTML(sub) + '</span>' +
     '</a>';
   }).join('');
+}
+
+function cityHref(key, isEs, liveMode) {
+  if (liveMode && !STATIC_CITY_ROUTES[key]) {
+    return '/sale/?city=' + encodeURIComponent(key) + (isEs ? '&lang=es' : '');
+  }
+  return '/' + key + (isEs ? '-es' : '');
 }
 
 function legacyHomeLocations() {
@@ -190,7 +205,10 @@ function titleFromSlug(slug) {
   }).join(' ') || 'City';
 }
 
+var _pageRenderToken = 0;
+
 function initPage(photos, driveLink, lang, ctaBg, meta) {
+  var renderToken = ++_pageRenderToken;
   var section = document.getElementById('carousel-section');
   var countEl = document.getElementById('photo-count');
   if (!section) return;
@@ -200,6 +218,7 @@ function initPage(photos, driveLink, lang, ctaBg, meta) {
   renderSaleViewCounter(meta, lang);
 
   if (!photos.length) {
+    if (renderToken !== _pageRenderToken) return;
     showComingSoon(section, countEl, lang);
     return;
   }
@@ -225,6 +244,7 @@ function initPage(photos, driveLink, lang, ctaBg, meta) {
     function markLoaded() {
       loaded++;
       if (loaded === photos.length) {
+        if (renderToken !== _pageRenderToken) return;
         var el = document.getElementById('carousel-loading');
         if (el) el.remove();
         var readyPhotos = availablePhotos.filter(Boolean);
@@ -342,10 +362,15 @@ function renderSaleInfo(meta, lang) {
   if (hasRevealCountdown) startAddressCountdown(revealAt, isEs);
 }
 
+var _saleViewsRecorded = {};
+
 async function renderSaleViewCounter(meta, lang) {
   if (!window.CBCMS || !window.CBCMS.isConfigured || !window.CBCMS.isConfigured() || !window.CBCMS.recordSaleView) return;
   var cityId = (meta && (meta.slug || meta.id)) || (typeof LOCATION !== 'undefined' ? LOCATION : '');
   if (!cityId) return;
+  var viewKey = cityId + ':' + (lang === 'es' ? 'es' : 'en');
+  if (_saleViewsRecorded[viewKey]) return;
+  _saleViewsRecorded[viewKey] = true;
 
   var main = document.querySelector('main');
   if (!main) return;
@@ -843,6 +868,7 @@ function _slidesLabelTotal() {
 
 // ── LIGHTBOX ──────────────────────────────────────────────────────────────
 var _lbIdx = 0;
+var _lbControlsBound = false;
 
 function initLightbox() {
   var lb    = document.getElementById('lightbox');
@@ -851,10 +877,13 @@ function initLightbox() {
   var next  = document.getElementById('lb-next');
   if (!lb) return;
 
-  if (close) close.addEventListener('click', closeLightbox);
-  lb.addEventListener('click', function (e) { if (e.target === lb) closeLightbox(); });
-  if (prev) prev.addEventListener('click', function () { lbGo(_lbIdx - 1); });
-  if (next) next.addEventListener('click', function () { lbGo(_lbIdx + 1); });
+  if (!_lbControlsBound) {
+    _lbControlsBound = true;
+    if (close) close.addEventListener('click', closeLightbox);
+    lb.addEventListener('click', function (e) { if (e.target === lb) closeLightbox(); });
+    if (prev) prev.addEventListener('click', function () { lbGo(_lbIdx - 1); });
+    if (next) next.addEventListener('click', function () { lbGo(_lbIdx + 1); });
+  }
 
   if (!_lbKeyBound) {
     _lbKeyBound = true;

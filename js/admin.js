@@ -5,7 +5,7 @@
   var LEGACY_KEY = 'cb-ed-editor-v2';
   var HISTORY_KEY = 'cb-ed-history-v1';
   var HISTORY_LIMIT = 40;
-  var PHOTO_LIMIT = 20;
+  var PHOTO_LIMIT = 10;
 
   var selectedCityId = '';
   var state = null;
@@ -23,6 +23,7 @@
   var syncing = false;
   var previewLang = 'en';
   var replacePhotoId = '';
+  var uploadSlotIndex = -1;
   var scanResults = {};
   var cms = window.CBCMS || null;
 
@@ -105,7 +106,13 @@
       }
     });
     bind('photo-upload', 'change', function (node) {
-      addUploads(Array.from(node.files || []));
+      var files = Array.from(node.files || []);
+      if (uploadSlotIndex >= 0) {
+        addUploadsAt(files, uploadSlotIndex, false);
+        uploadSlotIndex = -1;
+      } else {
+        addUploads(files);
+      }
       node.value = '';
     });
     bind('photo-replace-input', 'change', function (node) {
@@ -115,7 +122,7 @@
       replacePhotoId = '';
     });
     bind('photo-sort-name', 'click', sortPhotosByName);
-    bind('photo-renumber', 'click', renumberPhotos);
+    bind('photo-renumber', 'click', compactPhotoSlots);
     bind('photo-clean-alt', 'click', cleanAltText);
     bind('photo-clear', 'click', clearPhotos);
 
@@ -126,10 +133,6 @@
     bind('download-manifest', 'click', function () { downloadText('clutterbyte-ed-manifest.json', JSON.stringify(exportManifest(), null, 2)); });
     bind('reset-editor', 'click', resetDraft);
 
-    ['snippet-count', 'snippet-ext'].forEach(function (id) {
-      bind(id, 'input', function () { renderSnippet(); });
-      bind(id, 'change', function () { renderSnippet(); });
-    });
     bind('copy-snippet', 'click', function (button) { copyText(snippetText(), button); });
 
     ['setting-phone', 'setting-sms', 'setting-contact-en', 'setting-contact-es', 'editor-notes'].forEach(function (id) {
@@ -178,14 +181,32 @@
         event.dataTransfer.effectAllowed = 'move';
       });
       photoList.addEventListener('dragover', function (event) {
-        if (drag.photoId) event.preventDefault();
+        var item = event.target.closest('[data-slot-index]');
+        if (!item) return;
+        if (drag.photoId || hasDraggedFiles(event)) {
+          event.preventDefault();
+          item.classList.add('drop-target');
+        }
+      });
+      photoList.addEventListener('dragleave', function (event) {
+        var item = event.target.closest('[data-slot-index]');
+        if (item) item.classList.remove('drop-target');
       });
       photoList.addEventListener('drop', function (event) {
-        var item = event.target.closest('[data-photo-id]');
-        if (!item || !drag.photoId) return;
+        var item = event.target.closest('[data-slot-index]');
+        if (!item) return;
         event.preventDefault();
-        movePhotoBefore(drag.photoId, item.getAttribute('data-photo-id'));
-        drag.photoId = '';
+        item.classList.remove('drop-target');
+        var slotIndex = parseInt(item.getAttribute('data-slot-index'), 10);
+        var files = Array.from(event.dataTransfer.files || []).filter(isUploadableImage);
+        if (files.length) {
+          addUploadsAt(files, slotIndex, !!item.getAttribute('data-photo-id'));
+          return;
+        }
+        if (drag.photoId) {
+          movePhotoToSlot(drag.photoId, slotIndex);
+          drag.photoId = '';
+        }
       });
       photoList.addEventListener('dragend', function () { drag.photoId = ''; });
     }
@@ -203,9 +224,7 @@
       });
       dropzone.addEventListener('drop', function (event) {
         event.preventDefault();
-        addUploads(Array.from(event.dataTransfer.files || []).filter(function (file) {
-          return file.type.indexOf('image/') === 0;
-        }));
+        addUploads(Array.from(event.dataTransfer.files || []).filter(isUploadableImage));
       });
     }
 
@@ -370,8 +389,8 @@
       status.textContent = errorText || (configured
         ? (loggedIn
           ? (cloudAuthorized ? 'Signed in. Cloud autosave is active.' : 'Checking dashboard access...')
-          : 'Enter your dashboard email and password.')
-        : 'Enter your dashboard email and password.');
+          : 'Log in, upload photos, publish.')
+        : 'Log in, upload photos, publish.');
     }
     if (loginForm) loginForm.style.display = !loggedIn ? 'grid' : 'none';
     if (actions) actions.style.display = configured && loggedIn ? 'flex' : 'none';
@@ -492,9 +511,11 @@
           mime: photo.mime || '',
           alt: photo.alt || '',
           state: photo.state || '',
+          slot: Number.isFinite(parseInt(photo.slot, 10)) ? parseInt(photo.slot, 10) : slotFromSort(photo.sortOrder, photoIndex),
           sortOrder: photo.sortOrder || (photoIndex + 1) * 10
         };
       }).filter(function (photo) { return photo.src; });
+      photos = normalizePhotoSlots(photos);
 
       var coverId = city.coverId || (photos[0] ? photos[0].id : '');
       if (coverId && !photos.some(function (photo) { return photo.id === coverId; })) {
@@ -539,6 +560,7 @@
   function render() {
     if (!selectedCityId && state.cities[0]) selectedCityId = state.cities[0].id;
     if (!selectedCity()) selectedCityId = state.cities[0] ? state.cities[0].id : '';
+    state.cities.forEach(ensureCityPhotoSlots);
     renderAuth();
     renderMetrics();
     renderCities();
@@ -557,13 +579,14 @@
     if (!root) return;
     var active = state.cities.filter(function (city) { return city.active; }).length;
     var uploads = allPhotos().filter(function (photo) { return photo.kind === 'upload'; }).length;
-    var cloud = cloudConfigured() && cloudAuthorized ? 'live' : 'locked';
+    var city = selectedCity();
+    var slots = city ? Math.max(0, PHOTO_LIMIT - city.photos.length) : PHOTO_LIMIT;
     root.innerHTML =
       metricHTML(state.cities.length, 'cities') +
       metricHTML(totalPhotos(), 'photos') +
       metricHTML(active, 'visible') +
       metricHTML(uploads, 'pending') +
-      metricHTML(cloud, 'mode');
+      metricHTML(slots, 'slots left');
   }
 
   function metricHTML(value, label) {
@@ -616,8 +639,9 @@
     if (en) en.href = previewLink('en');
     if (es) es.href = previewLink('es');
     var cover = city.photos.filter(function (photo) { return photo.id === city.coverId; })[0];
+    var coverIndex = cover ? cover.slot : -1;
     var coverLabel = byId('cover-label');
-    if (coverLabel) coverLabel.textContent = cover ? 'Cover: ' + fileName(cover.src) : 'No cover';
+    if (coverLabel) coverLabel.textContent = cover ? 'Cover: slot ' + (coverIndex + 1) : 'No cover';
   }
 
   function renderPhotos() {
@@ -625,52 +649,62 @@
     var list = byId('photo-list');
     var count = byId('photo-count-label');
     if (!city || !list) return;
-    if (count) count.textContent = city.photos.length + (city.photos.length === 1 ? ' photo' : ' photos');
+    if (count) count.textContent = city.photos.length + ' / ' + PHOTO_LIMIT + ' slots used';
     list.innerHTML = '';
 
-    if (!city.photos.length) {
-      list.appendChild(emptyBox('No photos yet'));
-      return;
-    }
-
     var duplicates = duplicatePhotoIds(city);
-    city.photos.forEach(function (photo, index) {
+    for (var index = 0; index < PHOTO_LIMIT; index++) {
+      var photo = slotPhoto(city, index);
       var item = document.createElement('article');
-      item.className = 'ed-photo-item' + (photo.id === city.coverId ? ' cover' : '') + (duplicates[photo.id] ? ' duplicate' : '');
+      item.className = 'ed-photo-item ed-slot' + (photo ? ' filled' : ' empty');
+      item.setAttribute('data-slot-index', index);
+
+      if (!photo) {
+        item.innerHTML =
+          '<div class="ed-slot-empty">' +
+            '<strong>Slot ' + (index + 1) + '</strong>' +
+            '<span>Empty</span>' +
+            '<button class="admin-row-action" data-photo-action="upload-slot" data-slot-index="' + index + '" type="button">Upload here</button>' +
+          '</div>';
+        list.appendChild(item);
+        continue;
+      }
+
+      item.className += (photo.id === city.coverId ? ' cover' : '') + (duplicates[photo.id] ? ' duplicate' : '');
       item.draggable = true;
       item.setAttribute('data-photo-id', photo.id);
-
       var img = document.createElement('img');
       img.className = 'ed-photo-thumb';
-      img.src = objectUrls[photo.id] || assetUrl(photo.src);
+      img.src = photoDisplaySrc(photo);
       img.alt = photo.alt || photo.name || photo.src;
       img.loading = index < 8 ? 'eager' : 'lazy';
-      img.onerror = function () { item.classList.add('missing'); };
-      img.onload = function () { item.classList.add('loaded'); };
+      bindPhotoLoadState(img, item);
 
-      var label = photo.kind === 'storage' ? 'cloud' : (photo.kind === 'upload' ? 'pending upload' : 'site path');
+      var label = photo.kind === 'storage' ? 'uploaded' : (photo.kind === 'upload' ? 'pending upload' : 'site path');
       if (duplicates[photo.id]) label += ' - duplicate';
       var body = document.createElement('div');
       body.className = 'ed-photo-body';
       body.innerHTML =
-        '<strong>' + escapeHTML(photo.src) + '</strong>' +
-        '<span>' + (index + 1) + ' - ' + escapeHTML(label) + '</span>';
+        '<strong>Slot ' + (index + 1) + '</strong>' +
+        '<span>' + escapeHTML(label) + (photo.id === city.coverId ? ' - cover' : '') + '</span>' +
+        '<small>Drop a file here to replace</small>' +
+        '<em class="ed-photo-src">' + escapeHTML(photo.src) + '</em>';
 
       var actions = document.createElement('div');
       actions.className = 'ed-photo-actions';
-      actions.appendChild(action('cover', photo.id, photo.id === city.coverId ? 'Cover' : 'Set cover'));
+      actions.appendChild(action('cover', photo.id, photo.id === city.coverId ? 'Cover' : 'Make cover'));
       actions.appendChild(action('replace', photo.id, 'Replace'));
       actions.appendChild(action('up', photo.id, 'Up'));
       actions.appendChild(action('down', photo.id, 'Down'));
       actions.appendChild(action('top', photo.id, 'Top'));
       actions.appendChild(action('copy', photo.id, 'Copy'));
-      actions.appendChild(action('remove', photo.id, 'Remove'));
+      actions.appendChild(action('remove', photo.id, 'Delete'));
 
       item.appendChild(img);
       item.appendChild(body);
       item.appendChild(actions);
       list.appendChild(item);
-    });
+    }
   }
 
   function renderChecks() {
@@ -722,20 +756,20 @@
     var city = selectedCity();
     var root = byId('ed-preview');
     if (!root || !city) return;
-    var photos = city.photos.filter(function (photo) { return photo.kind !== 'upload'; });
+    var photos = city.photos.slice();
     var cover = city.photos.filter(function (photo) { return photo.id === city.coverId; })[0] || photos[0];
     var title = previewLang === 'es' ? city.name + ' - Espanol' : city.name;
     var contact = previewLang === 'es' ? state.settings.contactEs : state.settings.contactEn;
     root.innerHTML =
       '<div class="ed-preview-device">' +
-        '<div class="ed-preview-hero" style="background-image:url(' + cssUrl(cover ? cover.src : '') + ')">' +
+        '<div class="ed-preview-hero" style="background-image:' + cssBackgroundImage(photoDisplaySrc(cover)) + '">' +
           '<span>' + escapeHTML(city.status) + '</span>' +
           '<strong>' + escapeHTML(title) + '</strong>' +
           '<em>' + escapeHTML(city.saleDate || city.hours || contact) + '</em>' +
         '</div>' +
         '<div class="ed-preview-grid">' +
           photos.slice(0, 6).map(function (photo) {
-            return '<img src="' + escapeHTML(assetUrl(photo.src)) + '" alt="' + escapeHTML(photo.alt || '') + '"/>';
+            return '<img src="' + escapeHTML(photoDisplaySrc(photo)) + '" alt="' + escapeHTML(photo.alt || '') + '"/>';
           }).join('') +
         '</div>' +
         '<a class="admin-link" href="' + escapeHTML(previewLink(previewLang)) + '" target="_blank" rel="noopener">Open preview</a>' +
@@ -841,12 +875,16 @@
     copy.name = city.name + ' Copy';
     copy.active = false;
     copy.sortOrder = (state.cities.length + 1) * 10;
-    copy.photos = copy.photos.map(function (photo, index) {
+    var originalCoverId = copy.coverId;
+    copy.coverId = '';
+    copy.photos = copy.photos.map(function (photo) {
+      var wasCover = photo.id === originalCoverId;
       photo.id = uid();
-      photo.sortOrder = (index + 1) * 10;
+      if (wasCover) copy.coverId = photo.id;
       return photo;
     });
-    copy.coverId = copy.photos[0] ? copy.photos[0].id : '';
+    ensureCityPhotoSlots(copy);
+    if (!copy.coverId) copy.coverId = copy.photos[0] ? copy.photos[0].id : '';
     state.cities.push(copy);
     selectedCityId = copy.id;
     autosave('City duplicated');
@@ -890,7 +928,9 @@
     var input = byId('photo-path');
     var path = input ? input.value.trim() : '';
     if (!city || !path) return;
-    if (city.photos.length >= PHOTO_LIMIT) {
+    ensureCityPhotoSlots(city);
+    var openSlot = nextOpenSlot(city, 0);
+    if (openSlot < 0 || city.photos.length >= PHOTO_LIMIT) {
       markSaved('Max ' + PHOTO_LIMIT + ' photos');
       return;
     }
@@ -898,20 +938,29 @@
       markSaved('Duplicate photo skipped');
       return;
     }
-    remember('Before photo path added');
-    var photo = photoFromPath(path, city.photos.length);
-    photo.alt = altFor(city, city.photos.length);
+    remember('Before slot path added');
+    var photo = photoFromPath(path, openSlot);
+    photo.alt = altFor(city, openSlot);
     city.photos.push(photo);
     if (!city.coverId) city.coverId = photo.id;
     if (input) input.value = '';
-    autosave('Photo path added');
+    autosave('Slot path added');
     render();
   }
 
   async function addUploads(files) {
+    return addUploadsAt(files, 0, false);
+  }
+
+  async function addUploadsAt(files, slotIndex, replaceExisting) {
     var city = selectedCity();
+    files = Array.from(files || []).filter(isUploadableImage);
     if (!city || !files.length) return;
-    var slots = PHOTO_LIMIT - city.photos.length;
+
+    ensureCityPhotoSlots(city);
+    slotIndex = Math.max(0, Math.min(PHOTO_LIMIT - 1, parseInt(slotIndex, 10) || 0));
+    var willReplace = !!(replaceExisting && slotPhoto(city, slotIndex));
+    var slots = PHOTO_LIMIT - city.photos.length + (willReplace ? 1 : 0);
     if (slots <= 0) {
       markSaved('Max ' + PHOTO_LIMIT + ' photos');
       return;
@@ -920,50 +969,38 @@
       files = files.slice(0, slots);
       markSaved('Only ' + slots + ' slots open');
     }
-    remember('Before photos uploaded');
-    var next = nextPhotoNumber(city);
+    remember(willReplace ? 'Before slot replaced' : 'Before photos uploaded');
     var added = 0;
+    var replaced = false;
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
-      if (isDuplicateFile(city, file)) continue;
-      updateProgress(Math.round((i / files.length) * 100), 'Preparing ' + file.name);
-      var prepared = await compressImage(file);
-      var id = uid();
-      var ext = extension(prepared.name || file.name) || '.jpg';
-      var photo = {
-        id: id,
-        src: '/' + city.slug + '-pics/photo' + (next + added) + ext,
-        name: prepared.name || file.name,
-        kind: 'upload',
-        size: prepared.size || file.size,
-        mime: prepared.type || file.type,
-        alt: altFor(city, city.photos.length)
-      };
-
-      if (cloudConfigured() && cloudAuthorized) {
-        try {
-          var uploaded = await cms.uploadPhoto(city, prepared, function (percent, label) {
-            updateProgress(percent, label + ' ' + file.name);
-          });
-          photo.src = uploaded.src;
-          photo.kind = uploaded.kind;
-          photo.storageBucket = uploaded.storageBucket;
-          photo.storagePath = uploaded.storagePath;
-        } catch (error) {
-          markSaved('Upload failed');
-          objectUrls[id] = URL.createObjectURL(prepared);
+      if (i === 0 && willReplace) {
+        if (await replacePhotoAtSlot(city, slotIndex, file, true)) {
+          added++;
+          replaced = true;
+          render();
         }
-      } else {
-        objectUrls[id] = URL.createObjectURL(prepared);
+        continue;
       }
 
+      var openSlot = nextOpenSlot(city, slotIndex);
+      if (openSlot < 0) {
+        markSaved('No open slots');
+        break;
+      }
+      var photo = await uploadedPhotoFromFile(city, file, openSlot);
       city.photos.push(photo);
-      if (!city.coverId) city.coverId = id;
+      ensureCityPhotoSlots(city);
+      if (!city.coverId) city.coverId = photo.id;
       added++;
       render();
     }
-    updateProgress(100, added + (added === 1 ? ' photo ready' : ' photos ready'));
-    autosave(added + (added === 1 ? ' photo added' : ' photos added'));
+    if (!added) {
+      render();
+      return;
+    }
+    updateProgress(100, added + (added === 1 ? ' slot ready' : ' slots ready'));
+    autosave(replaced ? 'Slot replaced' : added + (added === 1 ? ' photo added' : ' photos added'));
     render();
   }
 
@@ -971,54 +1008,119 @@
     var city = selectedCity();
     if (!city) return;
     var photo = city.photos.filter(function (item) { return item.id === photoId; })[0];
-    if (!photo) return;
+    var slotIndex = photo ? photo.slot : -1;
+    if (slotIndex < 0) return;
     remember('Before photo replaced');
+    await replacePhotoAtSlot(city, slotIndex, file, false);
+  }
+
+  async function replacePhotoAtSlot(city, slotIndex, file, batchMode) {
+    var photo = slotPhoto(city, slotIndex);
+    if (!photo) return;
     var oldBucket = photo.storageBucket;
     var oldPath = photo.storagePath;
     var prepared = await compressImage(file);
-    updateProgress(20, 'Replacing photo');
+    updateProgress(20, 'Replacing slot ' + (slotIndex + 1));
     if (cloudConfigured() && cloudAuthorized) {
-      var uploaded = await cms.uploadPhoto(city, prepared, function (percent, label) {
-        updateProgress(percent, label);
-      });
+      var uploaded;
+      try {
+        uploaded = await cms.uploadPhoto(city, prepared, function (percent, label) {
+          updateProgress(percent, label);
+        });
+      } catch (error) {
+        updateProgress(100, 'Upload failed');
+        markSaved('Upload failed');
+        return false;
+      }
+      revokePreview(photo.id);
       photo.src = uploaded.src;
       photo.kind = uploaded.kind;
       photo.storageBucket = uploaded.storageBucket;
       photo.storagePath = uploaded.storagePath;
       if (oldBucket && oldPath) cms.deleteStorageObject(oldBucket, oldPath);
     } else {
-      revokePreview(photo.id);
       objectUrls[photo.id] = URL.createObjectURL(prepared);
-      photo.src = '/' + city.slug + '-pics/' + fileName(prepared.name || file.name);
+      photo.src = '/' + city.slug + '-pics/slot-' + (slotIndex + 1) + (extension(prepared.name || file.name) || '.jpg');
       photo.kind = 'upload';
     }
     photo.name = prepared.name || file.name;
     photo.size = prepared.size || file.size;
     photo.mime = prepared.type || file.type;
+    photo.alt = altFor(city, slotIndex);
+    photo.slot = slotIndex;
+    photo.sortOrder = (slotIndex + 1) * 10;
     photo.replacedAt = new Date().toISOString();
-    autosave('Photo replaced');
-    render();
+    if (!batchMode) {
+      autosave('Slot ' + (slotIndex + 1) + ' replaced');
+      render();
+    }
+    return true;
+  }
+
+  async function uploadedPhotoFromFile(city, file, slotIndex) {
+    updateProgress(15, 'Preparing slot ' + (slotIndex + 1));
+    var prepared = await compressImage(file);
+    var id = uid();
+    var ext = extension(prepared.name || file.name) || '.jpg';
+    var photo = {
+      id: id,
+      src: '/' + city.slug + '-pics/slot-' + (slotIndex + 1) + ext,
+      name: prepared.name || file.name,
+      kind: 'upload',
+      size: prepared.size || file.size,
+      mime: prepared.type || file.type,
+      alt: altFor(city, slotIndex),
+      slot: slotIndex,
+      sortOrder: (slotIndex + 1) * 10
+    };
+
+    if (cloudConfigured() && cloudAuthorized) {
+      try {
+        var uploaded = await cms.uploadPhoto(city, prepared, function (percent, label) {
+          updateProgress(percent, label + ' ' + file.name);
+        });
+        photo.src = uploaded.src;
+        photo.kind = uploaded.kind;
+        photo.storageBucket = uploaded.storageBucket;
+        photo.storagePath = uploaded.storagePath;
+      } catch (error) {
+        markSaved('Upload failed');
+        objectUrls[id] = URL.createObjectURL(prepared);
+      }
+    } else {
+      objectUrls[id] = URL.createObjectURL(prepared);
+    }
+
+    return photo;
   }
 
   function sortPhotosByName() {
     var city = selectedCity();
     if (!city) return;
-    remember('Before photos sorted');
+    remember('Before slots sorted');
     city.photos.sort(function (a, b) { return a.src.localeCompare(b.src); });
-    autosave('Photos sorted');
+    city.photos.forEach(function (photo, index) {
+      photo.slot = index;
+      photo.sortOrder = (index + 1) * 10;
+      photo.alt = photo.alt || altFor(city, index);
+    });
+    ensureCityPhotoSlots(city);
+    autosave('Slots sorted');
     render();
   }
 
-  function renumberPhotos() {
+  function compactPhotoSlots() {
     var city = selectedCity();
     if (!city || !city.photos.length) return;
-    remember('Before photo paths renumbered');
+    remember('Before slots compacted');
+    ensureCityPhotoSlots(city);
     city.photos.forEach(function (photo, index) {
-      if (photo.kind === 'storage') return;
-      var ext = extension(photo.src) || '.jpg';
-      photo.src = '/' + city.slug + '-pics/photo' + (index + 1) + ext;
+      photo.slot = index;
+      photo.sortOrder = (index + 1) * 10;
+      photo.alt = altFor(city, index);
     });
-    autosave('Photo paths renumbered');
+    ensureCityPhotoSlots(city);
+    autosave('Slots compacted');
     render();
   }
 
@@ -1026,8 +1128,9 @@
     var city = selectedCity();
     if (!city) return;
     remember('Before alt text cleanup');
-    city.photos.forEach(function (photo, index) {
-      photo.alt = altFor(city, index);
+    ensureCityPhotoSlots(city);
+    city.photos.forEach(function (photo) {
+      photo.alt = altFor(city, photo.slot);
     });
     autosave('Alt text cleaned');
     render();
@@ -1053,9 +1156,17 @@
   function handlePhotoAction(actionName, photoId, button) {
     var city = selectedCity();
     if (!city) return;
+    if (actionName === 'upload-slot') {
+      uploadSlotIndex = Math.max(0, Math.min(PHOTO_LIMIT - 1, parseInt(button.getAttribute('data-slot-index'), 10) || 0));
+      var uploadInput = byId('photo-upload');
+      if (uploadInput) uploadInput.click();
+      return;
+    }
+
     var index = city.photos.findIndex(function (photo) { return photo.id === photoId; });
     var photo = city.photos[index];
     if (!photo) return;
+    var slotIndex = photo.slot;
 
     if (actionName === 'copy') {
       copyText(photo.src, button);
@@ -1071,12 +1182,12 @@
     remember('Before photos updated');
     if (actionName === 'cover') {
       city.coverId = photo.id;
-    } else if (actionName === 'up' && index > 0) {
-      city.photos.splice(index - 1, 0, city.photos.splice(index, 1)[0]);
-    } else if (actionName === 'down' && index < city.photos.length - 1) {
-      city.photos.splice(index + 1, 0, city.photos.splice(index, 1)[0]);
-    } else if (actionName === 'top' && index > 0) {
-      city.photos.unshift(city.photos.splice(index, 1)[0]);
+    } else if (actionName === 'up' && slotIndex > 0) {
+      movePhotoToSlot(photo.id, slotIndex - 1, true);
+    } else if (actionName === 'down' && slotIndex < PHOTO_LIMIT - 1) {
+      movePhotoToSlot(photo.id, slotIndex + 1, true);
+    } else if (actionName === 'top' && slotIndex > 0) {
+      movePhotoToSlot(photo.id, 0, true);
     } else if (actionName === 'remove') {
       city.photos.splice(index, 1);
       revokePreview(photo.id);
@@ -1086,23 +1197,32 @@
       if (city.coverId === photo.id) city.coverId = city.photos[0] ? city.photos[0].id : '';
     }
 
+    ensureCityPhotoSlots(city);
     autosave('Photos updated');
     render();
   }
 
-  function movePhotoBefore(sourceId, targetId) {
-    if (sourceId === targetId) return;
+  function movePhotoToSlot(sourceId, targetIndex, skipSave) {
     var city = selectedCity();
     if (!city) return;
-    var sourceIndex = city.photos.findIndex(function (photo) { return photo.id === sourceId; });
-    var targetIndex = city.photos.findIndex(function (photo) { return photo.id === targetId; });
-    if (sourceIndex < 0 || targetIndex < 0) return;
-    remember('Before photos reordered');
-    var item = city.photos.splice(sourceIndex, 1)[0];
-    targetIndex = city.photos.findIndex(function (photo) { return photo.id === targetId; });
-    city.photos.splice(targetIndex, 0, item);
-    autosave('Photos reordered');
-    render();
+    var source = city.photos.filter(function (photo) { return photo.id === sourceId; })[0];
+    if (!source) return;
+    targetIndex = Math.max(0, Math.min(parseInt(targetIndex, 10) || 0, PHOTO_LIMIT - 1));
+    if (source.slot === targetIndex) return;
+    if (!skipSave) remember('Before photos reordered');
+    var target = slotPhoto(city, targetIndex);
+    var oldSlot = source.slot;
+    source.slot = targetIndex;
+    source.sortOrder = (targetIndex + 1) * 10;
+    if (target && target.id !== source.id) {
+      target.slot = oldSlot;
+      target.sortOrder = (oldSlot + 1) * 10;
+    }
+    ensureCityPhotoSlots(city);
+    if (!skipSave) {
+      autosave('Photos reordered');
+      render();
+    }
   }
 
   function moveCityBefore(sourceId, targetId) {
@@ -1300,12 +1420,11 @@
   function snippetText() {
     var city = selectedCity();
     if (!city) return '';
-    var count = Math.max(1, Math.min(80, parseInt(readValue('snippet-count'), 10) || 6));
-    var ext = readValue('snippet-ext') || '.jpg';
-    var start = nextPhotoNumber(city);
     var lines = [];
-    for (var i = 0; i < count; i++) {
-      lines.push("    '" + '/' + city.slug + '-pics/photo' + (start + i) + ext + "',");
+    ensureCityPhotoSlots(city);
+    for (var i = 0; i < PHOTO_LIMIT; i++) {
+      var photo = slotPhoto(city, i);
+      lines.push('Slot ' + (i + 1) + ': ' + (photo ? photo.src : 'empty'));
     }
     return lines.join('\n');
   }
@@ -1336,6 +1455,7 @@
     ];
 
     state.cities.forEach(function (city, cityIndex) {
+      ensureCityPhotoSlots(city);
       lines.push('  ' + jsString(city.slug) + ': [');
       city.photos.forEach(function (photo) {
         lines.push('    ' + jsString(photo.src) + ',');
@@ -1469,12 +1589,17 @@
   function action(name, photoId, label) {
     var button = document.createElement('button');
     button.type = 'button';
-    button.className = 'admin-row-action';
+    button.className = 'admin-row-action photo-action-' + name;
     button.dataset.label = label;
     button.setAttribute('data-photo-action', name);
     button.setAttribute('data-photo-id', photoId);
     button.textContent = label;
     return button;
+  }
+
+  function bindPhotoLoadState(img, item) {
+    img.onerror = function () { item.classList.add('missing'); };
+    img.onload = function () { item.classList.add('loaded'); };
   }
 
   function check(ok, good, bad) {
@@ -1493,6 +1618,64 @@
     return city.photos.filter(function (photo) { return photo.kind === 'upload'; });
   }
 
+  function ensureCityPhotoSlots(city) {
+    if (!city) return;
+    city.photos = normalizePhotoSlots(city.photos || []);
+    if (city.coverId && !city.photos.some(function (photo) { return photo.id === city.coverId; })) {
+      city.coverId = city.photos[0] ? city.photos[0].id : '';
+    }
+  }
+
+  function normalizePhotoSlots(photos) {
+    var used = {};
+    var result = [];
+    (photos || []).forEach(function (photo, index) {
+      if (!photo || !photo.src) return;
+      var slot = Number.isFinite(parseInt(photo.slot, 10))
+        ? parseInt(photo.slot, 10)
+        : slotFromSort(photo.sortOrder, index);
+      if (slot < 0 || slot >= PHOTO_LIMIT || used[slot]) slot = firstOpenSlot(used);
+      if (slot < 0) return;
+      used[slot] = true;
+      photo.slot = slot;
+      photo.sortOrder = (slot + 1) * 10;
+      result.push(photo);
+    });
+    return result.sort(function (a, b) { return a.slot - b.slot; });
+  }
+
+  function slotFromSort(sortOrder, fallbackIndex) {
+    var order = parseInt(sortOrder, 10);
+    if (order > 0) return Math.max(0, Math.min(PHOTO_LIMIT - 1, Math.round(order / 10) - 1));
+    return Math.max(0, Math.min(PHOTO_LIMIT - 1, fallbackIndex || 0));
+  }
+
+  function firstOpenSlot(used) {
+    for (var i = 0; i < PHOTO_LIMIT; i++) {
+      if (!used[i]) return i;
+    }
+    return -1;
+  }
+
+  function slotPhoto(city, slotIndex) {
+    return (city.photos || []).filter(function (photo) {
+      return photo.slot === slotIndex;
+    })[0] || null;
+  }
+
+  function nextOpenSlot(city, startSlot) {
+    startSlot = Math.max(0, Math.min(PHOTO_LIMIT - 1, parseInt(startSlot, 10) || 0));
+    var used = {};
+    (city.photos || []).forEach(function (photo) { used[photo.slot] = true; });
+    for (var i = startSlot; i < PHOTO_LIMIT; i++) {
+      if (!used[i]) return i;
+    }
+    for (var j = 0; j < startSlot; j++) {
+      if (!used[j]) return j;
+    }
+    return -1;
+  }
+
   function duplicatePhotoIds(city) {
     var seen = {};
     var dupes = {};
@@ -1509,11 +1692,18 @@
     return dupes;
   }
 
-  function isDuplicateFile(city, file) {
-    var name = String(file.name || '').toLowerCase();
-    return city.photos.some(function (photo) {
-      return String(photo.name || '').toLowerCase() === name && photo.size === file.size;
-    });
+  function isUploadableImage(file) {
+    if (!file) return false;
+    if (/^image\//i.test(file.type || '')) return true;
+    return /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(file.name || '');
+  }
+
+  function hasDraggedFiles(event) {
+    try {
+      return Array.from(event.dataTransfer.types || []).indexOf('Files') >= 0;
+    } catch (e) {
+      return false;
+    }
   }
 
   function uniqueSlugs() {
@@ -1534,6 +1724,7 @@
   }
 
   function photoFromPath(src, index) {
+    index = Math.max(0, Math.min(PHOTO_LIMIT - 1, parseInt(index, 10) || 0));
     return {
       id: uid(),
       src: src,
@@ -1541,18 +1732,13 @@
       kind: 'path',
       size: 0,
       alt: '',
+      slot: index,
       sortOrder: (index + 1) * 10
     };
   }
 
-  function nextPhotoNumber(city) {
-    return city.photos.reduce(function (highest, photo) {
-      var match = photo.src.match(/photo(\d+)\.[a-z0-9]+$/i);
-      return match ? Math.max(highest, parseInt(match[1], 10)) : highest;
-    }, 0) + 1;
-  }
-
   function cleanState(raw) {
+    if (raw && Array.isArray(raw.cities)) raw.cities.forEach(ensureCityPhotoSlots);
     return JSON.parse(JSON.stringify(raw));
   }
 
@@ -1619,23 +1805,19 @@
     var cfg = (window.ED_SUPABASE_CONFIG || {});
     var maxSide = cfg.maxImageSide || 1800;
     var quality = cfg.imageQuality || 0.82;
-    if (!file || !/^image\//.test(file.type || '') || /gif/i.test(file.type || '')) return Promise.resolve(file);
-    if (file.size < 450000) return Promise.resolve(file);
+    if (!file || !/^image\//.test(file.type || '') || /gif|svg/i.test(file.type || '')) return Promise.resolve(file);
 
     return new Promise(function (resolve) {
       var img = new Image();
       var url = URL.createObjectURL(file);
       img.onload = function () {
         var scale = Math.min(1, maxSide / Math.max(img.width, img.height));
-        if (scale >= 1 && file.size < 1200000) {
-          URL.revokeObjectURL(url);
-          resolve(file);
-          return;
-        }
         var canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(img.width * scale));
         canvas.height = Math.max(1, Math.round(img.height * scale));
         var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         canvas.toBlob(function (blob) {
           URL.revokeObjectURL(url);
@@ -1755,9 +1937,17 @@
     return '..' + path;
   }
 
+  function photoDisplaySrc(photo) {
+    if (!photo) return '';
+    return objectUrls[photo.id] || assetUrl(photo.src);
+  }
+
   function cssUrl(path) {
-    if (!path) return 'none';
     return "'" + assetUrl(path).replace(/'/g, "%27") + "'";
+  }
+
+  function cssBackgroundImage(path) {
+    return path ? 'url(' + cssUrl(path) + ')' : 'none';
   }
 
   function absolutePath(path) {
