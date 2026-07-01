@@ -264,15 +264,22 @@
     }
 
     cms.onAuthStateChange(function (event, session) {
-      cloudSession = session || null;
-      cloudAuthorized = false;
       if (!session && !hydrating) {
         authCheckId++;
         authCheckPromise = null;
+        cloudSession = null;
+        cloudAuthorized = false;
         setDashboardLocked(true);
+        renderAuth();
+        return;
+      }
+
+      if (session) {
+        cloudSession = session;
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') cloudAuthorized = false;
       }
       renderAuth();
-      if (session && event === 'SIGNED_IN') loadCloudState();
+      if (session && !hydrating && !cloudAuthorized) loadCloudState();
     });
   }
 
